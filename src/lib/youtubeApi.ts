@@ -1,5 +1,5 @@
 
-const API_KEY = ""; // <-- Add your public YouTube Data API v3 key here
+const API_KEY = "AIzaSyBXbToqkneqDmQv5r3EOxH58PzjygpHSlg"; // <-- Your public YouTube Data API v3 key
 
 // For demo purposes, this will mock data if API_KEY is empty.
 export async function searchYouTube(query: string) {
@@ -33,3 +33,4 @@ export async function searchYouTube(query: string) {
   const data = await res.json();
   return data.items;
 }
+
