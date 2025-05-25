@@ -1,14 +1,36 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import VideoCard from "@/components/VideoCard";
 import { searchYouTube } from "@/lib/youtubeApi";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
+const DEMO_VIDEO = {
+  id: { videoId: "dQw4w9WgXcQ" },
+  snippet: {
+    title: "Rick Astley - Never Gonna Give You Up (Music Video)",
+    thumbnails: { high: { url: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" } },
+    channelTitle: "Official RickAstley",
+    publishedAt: "1987-10-25T00:00:00Z"
+  }
+};
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [noResult, setNoResult] = useState(false);
+
+  // For restoring previous search
+  useEffect(() => {
+    const prev = localStorage.getItem("recentResults");
+    if (prev) {
+      setResults(JSON.parse(prev));
+    } else {
+      setResults([DEMO_VIDEO]);
+    }
+  }, []);
 
   async function handleSearch(query: string) {
     setLoading(true);
@@ -17,6 +39,7 @@ const Index = () => {
       const items = await searchYouTube(query);
       setResults(items);
       setNoResult(items.length === 0);
+      localStorage.setItem("recentResults", JSON.stringify(items));
     } catch (err) {
       setResults([]);
       setNoResult(true);
@@ -50,3 +73,4 @@ const Index = () => {
 };
 
 export default Index;
+

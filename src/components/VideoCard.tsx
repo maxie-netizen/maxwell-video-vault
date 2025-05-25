@@ -1,9 +1,11 @@
-
 import { Play, Download } from "lucide-react";
 import { useState } from "react";
 import VideoPlayerModal from "./VideoPlayerModal";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import DownloadQualityModal from "./DownloadQualityModal";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface VideoCardProps {
   video: any;
@@ -11,12 +13,31 @@ interface VideoCardProps {
 export default function VideoCard({ video }: VideoCardProps) {
   const { snippet, id } = video;
   const [open, setOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const { user } = useAuth() || {};
+  const navigate = useNavigate();
 
-  function handleDownload(quality: string) {
+  function handleDownloadClick() {
+    if (!user) {
+      setModalOpen(false);
+      setTimeout(() => navigate("/auth"), 150); // prompt login
+      return;
+    }
+    setModalOpen(true);
+  }
+
+  function handleQualitySelect(quality: string) {
+    if (!user) {
+      setModalOpen(false);
+      setTimeout(() => navigate("/auth"), 150);
+      return;
+    }
+    // Here you would call the backend/edge for real download if enabled.
+    // For now, just disable the download after click and show a toast.
+    setModalOpen(false);
     toast({
-      title: "Download not available",
-      description:
-        "Direct download is not available in this demo. Backend required for this feature.",
+      title: "Download unavailable",
+      description: `Actual downloads require backend. Picked: ${quality}`,
       variant: "destructive",
     });
   }
@@ -36,34 +57,18 @@ export default function VideoCard({ video }: VideoCardProps) {
             Play
           </Button>
           <Button
-            variant="secondary"
-            className="flex items-center gap-2"
-            disabled
-            onClick={() => handleDownload("720p")}
-            title="Needs backend"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => setModalOpen(true)}
           >
-            <Download size={16} /> Download 720p
-          </Button>
-          <Button
-            variant="secondary"
-            className="flex items-center gap-2"
-            disabled
-            onClick={() => handleDownload("480p")}
-            title="Needs backend"
-          >
-            <Download size={16} /> Download 480p
-          </Button>
-          <Button
-            variant="secondary"
-            className="flex items-center gap-2"
-            disabled
-            onClick={() => handleDownload("Audio")}
-            title="Needs backend"
-          >
-            <Download size={16} /> Download Audio
+            <Download size={16} /> Download
           </Button>
         </div>
       </div>
+      <DownloadQualityModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onSelectQuality={handleQualitySelect}
+      />
       <VideoPlayerModal
         open={open}
         onOpenChange={setOpen}
