@@ -5,17 +5,58 @@ import SearchBar from "@/components/SearchBar";
 import VideoCard from "@/components/VideoCard";
 import { searchYouTube } from "@/lib/youtubeApi";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 
-const DEMO_VIDEO = {
-  id: { videoId: "dQw4w9WgXcQ" },
-  snippet: {
-    title: "Rick Astley - Never Gonna Give You Up (Music Video)",
-    thumbnails: { high: { url: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" } },
-    channelTitle: "Official RickAstley",
-    publishedAt: "1987-10-25T00:00:00Z"
+// More demo videos and shorts
+const DEMO_VIDEOS = [
+  {
+    id: { videoId: "dQw4w9WgXcQ" },
+    snippet: {
+      title: "Rick Astley - Never Gonna Give You Up (Music Video)",
+      thumbnails: { high: { url: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" } },
+      channelTitle: "Official RickAstley",
+      publishedAt: "1987-10-25T00:00:00Z"
+    }
+  },
+  {
+    id: { videoId: "E7wJTI-1dvQ" },
+    snippet: {
+      title: "Britney Spears - ...Baby One More Time (Official Video)",
+      thumbnails: { high: { url: "https://img.youtube.com/vi/E7wJTI-1dvQ/hqdefault.jpg" } },
+      channelTitle: "Britney Spears",
+      publishedAt: "1998-10-23T00:00:00Z"
+    }
+  },
+  {
+    id: { videoId: "3JZ_D3ELwOQ" },
+    snippet: {
+      title: "Eminem - Without Me (Official Music Video)",
+      thumbnails: { high: { url: "https://img.youtube.com/vi/3JZ_D3ELwOQ/hqdefault.jpg" } },
+      channelTitle: "EminemMusic",
+      publishedAt: "2009-06-16T00:00:00Z"
+    }
   }
-};
+];
+
+const SHORTS = [
+  {
+    id: { videoId: "ShZ978fBl6Y" },
+    snippet: {
+      title: "Amazing Parkour Flip #shorts",
+      thumbnails: { high: { url: "https://img.youtube.com/vi/ShZ978fBl6Y/hqdefault.jpg" } },
+      channelTitle: "ParkourWorld",
+      publishedAt: "2023-09-12T00:00:00Z"
+    }
+  },
+  {
+    id: { videoId: "ZcUf59Yk5ig" },
+    snippet: {
+      title: "Quick Cat Reaction #shorts",
+      thumbnails: { high: { url: "https://img.youtube.com/vi/ZcUf59Yk5ig/hqdefault.jpg" } },
+      channelTitle: "FunnyPets",
+      publishedAt: "2022-01-15T00:00:00Z"
+    }
+  }
+];
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
@@ -28,7 +69,7 @@ const Index = () => {
     if (prev) {
       setResults(JSON.parse(prev));
     } else {
-      setResults([DEMO_VIDEO]);
+      setResults(DEMO_VIDEOS);
     }
   }, []);
 
@@ -67,10 +108,19 @@ const Index = () => {
             <span>Enter a search above to find YouTube videos and music.</span>
           </div>
         )}
+
+        {/* Shorts Section */}
+        <div className="mt-14">
+          <h2 className="text-lg font-bold text-white mb-4">Shorts</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {SHORTS.map(video => (
+              <VideoCard key={video.id.videoId} video={video} />
+            ))}
+          </div>
+        </div>
       </main>
     </div>
   );
 };
 
 export default Index;
-

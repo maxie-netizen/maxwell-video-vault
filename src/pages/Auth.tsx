@@ -1,8 +1,9 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut, Youtube } from "lucide-react";
 
 export default function AuthPage() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth() || {};
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +30,13 @@ export default function AuthPage() {
       }
     }
     navigate("/");
+  }
+
+  async function handleGoogleSignIn() {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    if (error) {
+      setError(error.message);
+    }
   }
 
   return (
@@ -53,6 +62,13 @@ export default function AuthPage() {
         />
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white">{isLogin ? "Login" : "Sign Up"}</Button>
+        <button
+          type="button"
+          className="w-full flex gap-2 items-center justify-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 mb-2"
+          onClick={handleGoogleSignIn}
+        >
+          <Youtube size={18} /> Sign in with Google
+        </button>
         <button
           type="button"
           className="text-sm text-gray-400 underline"

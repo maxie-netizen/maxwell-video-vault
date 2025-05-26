@@ -32,12 +32,11 @@ export default function VideoCard({ video }: VideoCardProps) {
       setTimeout(() => navigate("/auth"), 150);
       return;
     }
-    // Here you would call the backend/edge for real download if enabled.
-    // For now, just disable the download after click and show a toast.
     setModalOpen(false);
+    // Replace with actual backend download trigger here
     toast({
       title: "Download unavailable",
-      description: `Actual downloads require backend. Picked: ${quality}`,
+      description: `Real download requires backend. Picked: ${quality}`,
       variant: "destructive",
     });
   }
@@ -56,9 +55,10 @@ export default function VideoCard({ video }: VideoCardProps) {
             <Play size={16} />
             Play
           </Button>
+          {/* Enable only one download button, open quality modal if logged in, else prompt login */}
           <Button
             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => setModalOpen(true)}
+            onClick={handleDownloadClick}
           >
             <Download size={16} /> Download
           </Button>
