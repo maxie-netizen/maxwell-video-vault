@@ -1,3 +1,4 @@
+
 import { Play, Download } from "lucide-react";
 import { useState } from "react";
 import VideoPlayerModal from "./VideoPlayerModal";
@@ -14,6 +15,7 @@ export default function VideoCard({ video }: VideoCardProps) {
   const { snippet, id } = video;
   const [open, setOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const { user } = useAuth() || {};
   const navigate = useNavigate();
 
@@ -26,19 +28,54 @@ export default function VideoCard({ video }: VideoCardProps) {
     setModalOpen(true);
   }
 
-  function handleQualitySelect(quality: string) {
+  async function handleQualitySelect(quality: string) {
     if (!user) {
       setModalOpen(false);
       setTimeout(() => navigate("/auth"), 150);
       return;
     }
     setModalOpen(false);
-    // Replace with actual backend download trigger here
-    toast({
-      title: "Download unavailable",
-      description: `Real download requires backend. Picked: ${quality}`,
-      variant: "destructive",
-    });
+
+    // Only implement Audio Only via backend for now
+    if (quality === "Audio Only") {
+      setDownloading(true);
+      try {
+        const res = await fetch(
+          `https://viwfeqkuwblobybygilr.functions.supabase.co/youtube-download`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ videoId: id.videoId }),
+          }
+        );
+        const data = await res.json();
+        if (data.downloadUrl) {
+          // Open download in a new tab
+          window.open(data.downloadUrl, "_blank", "noopener,noreferrer");
+          toast({
+            title: "Download Started",
+            description: "Your MP3 file is being prepared.",
+            variant: "default",
+          });
+        } else {
+          throw new Error(data.error || "Unable to retrieve download link");
+        }
+      } catch (e: any) {
+        toast({
+          title: "Download failed",
+          description: e.message || "Unknown error",
+          variant: "destructive",
+        });
+      } finally {
+        setDownloading(false);
+      }
+    } else {
+      toast({
+        title: "Not supported",
+        description: `Only Audio Only downloads are enabled in demo`,
+        variant: "destructive",
+      });
+    }
   }
 
   return (
@@ -55,12 +92,12 @@ export default function VideoCard({ video }: VideoCardProps) {
             <Play size={16} />
             Play
           </Button>
-          {/* Enable only one download button, open quality modal if logged in, else prompt login */}
           <Button
             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
             onClick={handleDownloadClick}
+            disabled={downloading}
           >
-            <Download size={16} /> Download
+            <Download size={16} /> {downloading ? "Downloading..." : "Download"}
           </Button>
         </div>
       </div>
