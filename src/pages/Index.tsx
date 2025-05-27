@@ -6,6 +6,7 @@ import { searchYouTube } from "@/lib/youtubeApi";
 import { useAuth } from "@/hooks/useAuth";
 import FooterReview from "@/components/FooterReview";
 import React from "react";
+import AdminPanel from "@/components/AdminPanel";
 
 // More demo videos and shorts
 const DEMO_VIDEOS = [

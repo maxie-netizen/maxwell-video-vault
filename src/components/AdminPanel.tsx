@@ -13,13 +13,20 @@ export default function AdminPanel() {
   const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
-    setLoading(true);
-    // Get profiles
-    supabase
-      .from("profiles")
-      .select("*")
-      .then(({ data }) => setUsers(data || []))
-      .finally(() => setLoading(false));
+    let isMounted = true;
+    async function fetchProfiles() {
+      setLoading(true);
+      try {
+        const { data } = await supabase.from("profiles").select("*");
+        if (isMounted) setUsers(data || []);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchProfiles();
+    return () => {
+      isMounted = false;
+    };
   }, [refresh]);
 
   const handleRemove = async (id: string) => {
@@ -35,6 +42,7 @@ export default function AdminPanel() {
     toast({
       title: "User removed",
     });
+    setLoading(false);
   };
 
   const handleAdd = async () => {
