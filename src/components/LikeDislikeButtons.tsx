@@ -6,31 +6,32 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
-  const { user, profile } = useAuth() || {};
+  const { profile } = useAuth() || {};
   const [vote, setVote] = useState<number | null>(null);
   const [counts, setCounts] = useState({ likes: 0, dislikes: 0 });
 
-  // fetch vote status and counts
+  // Fetch vote status and counts
   useEffect(() => {
-    supabase
-      .from("video_votes")
-      .select("vote")
-      .eq("user_id", profile?.id)
-      .eq("video_id", videoId)
-      .single()
-      .then(({ data }) => {
-        setVote(data?.vote ?? null);
-      });
-    // get total counts
-    supabase
-      .from("video_votes")
-      .select("vote")
-      .eq("video_id", videoId)
-      .then(({ data }) => {
-        const likes = (data || []).filter((v) => v.vote === 1).length;
-        const dislikes = (data || []).filter((v) => v.vote === -1).length;
-        setCounts({ likes, dislikes });
-      });
+    async function fetchVoteStatus() {
+      if (!profile?.id || !videoId) return;
+      const { data: userVote } = await supabase
+        .from("video_votes")
+        .select("vote")
+        .eq("user_id", profile.id)
+        .eq("video_id", videoId)
+        .single();
+
+      setVote(userVote?.vote ?? null);
+
+      const { data: allVotes } = await supabase
+        .from("video_votes")
+        .select("vote")
+        .eq("video_id", videoId);
+      const likes = (allVotes || []).filter((v) => v.vote === 1).length;
+      const dislikes = (allVotes || []).filter((v) => v.vote === -1).length;
+      setCounts({ likes, dislikes });
+    }
+    fetchVoteStatus();
   }, [profile?.id, videoId]);
 
   async function handleVote(v: number) {
@@ -38,20 +39,29 @@ export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
       toast({ title: "Login required", description: "Please log in to vote", variant: "destructive" });
       return;
     }
-    await supabase.from("video_votes").upsert({
-      user_id: profile.id,
-      video_id: videoId,
-      vote: v,
-    });
-    setVote(v);
-    // reload counts
-    const { data } = await supabase
+
+    // Upsert new vote or update existing
+    const { error } = await supabase
       .from("video_votes")
-      .select("vote")
-      .eq("video_id", videoId);
-    const likes = (data || []).filter((v) => v.vote === 1).length;
-    const dislikes = (data || []).filter((v) => v.vote === -1).length;
-    setCounts({ likes, dislikes });
+      .upsert(
+        [
+          { user_id: profile.id, video_id: videoId, vote: v }
+        ],
+        { onConflict: ["user_id", "video_id"] }
+      );
+    if (error) {
+      toast({ title: "Vote failed", description: error.message, variant: "destructive" });
+    } else {
+      setVote(v);
+      // reload counts
+      const { data: allVotes } = await supabase
+        .from("video_votes")
+        .select("vote")
+        .eq("video_id", videoId);
+      const likes = (allVotes || []).filter((item) => item.vote === 1).length;
+      const dislikes = (allVotes || []).filter((item) => item.vote === -1).length;
+      setCounts({ likes, dislikes });
+    }
   }
 
   return (
