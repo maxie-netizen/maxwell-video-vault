@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import FooterReview from "@/components/FooterReview";
 import React from "react";
 import AdminPanel from "@/components/AdminPanel";
+import DeveloperAttribution from "@/components/DeveloperAttribution";
 
 // More demo videos and shorts
 const DEMO_VIDEOS = [
@@ -123,8 +124,9 @@ const Index = () => {
           </div>
         )}
       </main>
-      {/* Remove Shorts section */}
+      {/* Extra Footer Sections */}
       <FooterReview />
+      <DeveloperAttribution />
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import { Play, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import VideoPlayerModal from "./VideoPlayerModal";
@@ -71,15 +72,16 @@ export default function VideoCard({ video }: VideoCardProps) {
         );
         const data = await res.json();
         if (data.downloadUrl) {
-          // Open download in a new tab
+          // Try to open download in a new tab, then show a message how to return
           window.open(data.downloadUrl, "_blank", "noopener,noreferrer");
           toast({
             title: "Download Started",
-            description: "Your MP3 file is being prepared.",
+            description: "Your MP3 file is being prepared. After downloading, return to Maxwell Downloader.",
             variant: "default",
+            duration: 7000
           });
         } else {
-          throw new Error(data.error || "Unable to retrieve download link");
+          throw new Error(data.error || "Unable to retrieve download link. Please try again later.");
         }
       } catch (e: any) {
         toast({

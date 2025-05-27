@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -7,10 +8,22 @@ export default function Header() {
   const { user, profile, logout } = useAuth() || {};
   const navigate = useNavigate();
 
+  // Placeholder logo image - you can replace this src with your preferred/previous logo asset path!
+  // If you upload your own, use: <img src="/lovable-uploads/your-logo.png" ... />
+  const logoSrc = "/favicon.ico"; // fallback favicon, or point to a real logo file
   return (
     <header className="w-full bg-neutral-900 py-4 shadow">
       <div className="container mx-auto flex items-center justify-between px-4">
-        <span className="text-2xl font-bold text-white cursor-pointer" onClick={() => navigate("/")}>VideoVault</span>
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
+          <img
+            src={logoSrc}
+            alt="Logo"
+            className="h-8 w-8 object-contain rounded"
+          />
+          <span className="text-2xl font-bold text-white select-none">
+            Maxwell Downloader
+          </span>
+        </div>
         <div className="flex items-center gap-3">
           {user ? (
             <>
