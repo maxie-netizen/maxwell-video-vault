@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 
 export default function Header() {
-  const { user, logout } = useAuth() || {};
+  const { user, profile, logout } = useAuth() || {};
   const navigate = useNavigate();
 
   return (
@@ -14,7 +14,9 @@ export default function Header() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-gray-400 mr-2">Hi, {user.email}</span>
+              <span className="text-sm text-gray-400 mr-2">
+                Hi, {profile?.username ?? "User"}
+              </span>
               <button
                 className="flex items-center gap-1 bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded transition"
                 onClick={logout}

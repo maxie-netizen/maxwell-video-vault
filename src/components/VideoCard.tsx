@@ -1,12 +1,13 @@
-
 import { Play, Download } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import VideoPlayerModal from "./VideoPlayerModal";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import DownloadQualityModal from "./DownloadQualityModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import LikeDislikeButtons from "./LikeDislikeButtons";
+import SaveButton from "./SaveButton";
 
 interface VideoCardProps {
   video: any;
@@ -16,8 +17,28 @@ export default function VideoCard({ video }: VideoCardProps) {
   const [open, setOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [duration, setDuration] = useState<string | null>(null);
   const { user } = useAuth() || {};
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchDuration() {
+      if (!id?.videoId) return;
+      const apiKey = "AIzaSyBXbToqkneqDmQv5r3EOxH58PzjygpHSlg";
+      const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${id.videoId}&key=${apiKey}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const iso = data.items?.[0]?.contentDetails?.duration;
+      if (iso) {
+        // convert ISO to mm:ss
+        const match = iso.match(/PT((\d+)M)?((\d+)S)?/);
+        const m = match?.[2] || "0";
+        const s = match?.[4] || "0";
+        setDuration(`${parseInt(m)}min ${parseInt(s)}s`);
+      }
+    }
+    fetchDuration();
+  }, [id.videoId]);
 
   function handleDownloadClick() {
     if (!user) {
@@ -84,6 +105,9 @@ export default function VideoCard({ video }: VideoCardProps) {
       <div className="p-4 flex flex-col gap-2">
         <div className="font-semibold text-base text-white mb-1">{snippet.title}</div>
         <div className="text-sm text-gray-400">{snippet.channelTitle}</div>
+        {duration && (
+          <div className="text-xs text-gray-400 mb-1">Length: {duration}</div>
+        )}
         <div className="flex gap-2 mt-3 flex-wrap">
           <Button
             onClick={() => setOpen(true)}
@@ -99,7 +123,9 @@ export default function VideoCard({ video }: VideoCardProps) {
           >
             <Download size={16} /> {downloading ? "Downloading..." : "Download"}
           </Button>
+          <SaveButton videoId={id.videoId} />
         </div>
+        <LikeDislikeButtons videoId={id.videoId} />
       </div>
       <DownloadQualityModal
         open={modalOpen}

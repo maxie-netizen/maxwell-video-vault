@@ -9,7 +9,117 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          username: string
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          role?: string
+          username: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      saved_videos: {
+        Row: {
+          id: string
+          saved_at: string | null
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          id?: string
+          saved_at?: string | null
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          id?: string
+          saved_at?: string | null
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_videos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_votes: {
+        Row: {
+          id: string
+          user_id: string
+          video_id: string
+          vote: number
+          voted_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          video_id: string
+          vote: number
+          voted_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          video_id?: string
+          vote?: number
+          voted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

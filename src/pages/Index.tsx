@@ -1,10 +1,11 @@
-
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import VideoCard from "@/components/VideoCard";
 import { searchYouTube } from "@/lib/youtubeApi";
 import { useAuth } from "@/hooks/useAuth";
+import FooterReview from "@/components/FooterReview";
+import React from "react";
 
 // More demo videos and shorts
 const DEMO_VIDEOS = [
@@ -62,6 +63,7 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [noResult, setNoResult] = useState(false);
+  const { user, profile } = useAuth() || {};
 
   // For restoring previous search
   useEffect(() => {
@@ -89,9 +91,9 @@ const Index = () => {
   }
 
   return (
-    <div className="bg-neutral-950 min-h-screen">
+    <div className="bg-neutral-950 min-h-screen flex flex-col">
       <Header />
-      <main className="max-w-2xl mx-auto px-2">
+      <main className="max-w-2xl mx-auto px-2 flex-1 w-full">
         <SearchBar onSearch={handleSearch} loading={loading} />
         {noResult && (
           <div className="text-center text-gray-400 mt-16 text-lg">
@@ -108,17 +110,20 @@ const Index = () => {
             <span>Enter a search above to find YouTube videos and music.</span>
           </div>
         )}
-
-        {/* Shorts Section */}
-        <div className="mt-14">
-          <h2 className="text-lg font-bold text-white mb-4">Shorts</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {SHORTS.map(video => (
-              <VideoCard key={video.id.videoId} video={video} />
-            ))}
+        {/* Admin Panel */}
+        {profile?.role === "admin" && (
+          <div className="mt-10">
+            <FooterReview />
+            <div className="mt-4">
+              <React.Suspense fallback={<div>Loading admin...</div>}>
+                <AdminPanel />
+              </React.Suspense>
+            </div>
           </div>
-        </div>
+        )}
       </main>
+      {/* Remove Shorts section */}
+      <FooterReview />
     </div>
   );
 };
