@@ -44,10 +44,8 @@ export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
     const { error } = await supabase
       .from("video_votes")
       .upsert(
-        [
-          { user_id: profile.id, video_id: videoId, vote: v }
-        ],
-        { onConflict: ["user_id", "video_id"] }
+        { user_id: profile.id, video_id: videoId, vote: v },
+        { onConflict: 'user_id,video_id' }
       );
     if (error) {
       toast({ title: "Vote failed", description: error.message, variant: "destructive" });
@@ -67,7 +65,11 @@ export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
   return (
     <div className="flex items-center gap-3 mt-2">
       <button
-        className={`flex items-center gap-1 px-2 py-1 rounded ${vote === 1 ? "bg-green-600 text-white" : "bg-neutral-800 text-gray-300"}`}
+        className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+          vote === 1 
+            ? "bg-primary text-primary-foreground" 
+            : "bg-muted text-muted-foreground hover:bg-muted/80"
+        }`}
         onClick={() => handleVote(1)}
         aria-label="Like"
       >
@@ -75,7 +77,11 @@ export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
         {counts.likes}
       </button>
       <button
-        className={`flex items-center gap-1 px-2 py-1 rounded ${vote === -1 ? "bg-red-700 text-white" : "bg-neutral-800 text-gray-300"}`}
+        className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+          vote === -1 
+            ? "bg-destructive text-destructive-foreground" 
+            : "bg-muted text-muted-foreground hover:bg-muted/80"
+        }`}
         onClick={() => handleVote(-1)}
         aria-label="Dislike"
       >

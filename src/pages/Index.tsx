@@ -93,12 +93,12 @@ const Index = () => {
   }
 
   return (
-    <div className="bg-neutral-950 min-h-screen flex flex-col">
+    <div className="bg-background min-h-screen flex flex-col">
       <Header />
-      <main className="max-w-2xl mx-auto px-2 flex-1 w-full">
+      <main className="max-w-2xl mx-auto px-4 flex-1 w-full pb-20 md:pb-4">
         <SearchBar onSearch={handleSearch} loading={loading} />
         {noResult && (
-          <div className="text-center text-gray-400 mt-16 text-lg">
+          <div className="text-center text-muted-foreground mt-16 text-lg">
             No results found.
           </div>
         )}
@@ -108,7 +108,7 @@ const Index = () => {
           ))}
         </div>
         {!results.length && !noResult && (
-          <div className="text-center text-gray-600 mt-20">
+          <div className="text-center text-muted-foreground mt-20">
             <span>Enter a search above to find YouTube videos and music.</span>
           </div>
         )}
