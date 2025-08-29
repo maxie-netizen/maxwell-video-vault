@@ -1,14 +1,28 @@
 import React, { useRef, useEffect } from 'react';
-import { Play, Pause, X, Maximize2, PictureInPicture2 } from 'lucide-react';
+import { Play, Pause, X, Maximize2, PictureInPicture2, Move } from 'lucide-react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDraggable } from '@/hooks/useDraggable';
 
 export default function MiniPlayer() {
   const { playerState, closePlayer, maximizePlayer, pausePlayer, resumePlayer } = usePlayer();
   const { currentVideo, isMinimized, showPlayer, isPlaying } = playerState;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isMobile = useIsMobile();
+  
+  const { position, elementRef, startDrag, isDragging } = useDraggable({
+    initialPosition: { 
+      x: isMobile ? window.innerWidth - 320 - 16 : window.innerWidth - 320 - 16, 
+      y: isMobile ? window.innerHeight - 240 - 80 - 16 : window.innerHeight - 240 - 16 
+    },
+    bounds: {
+      left: 16,
+      top: 16,
+      right: window.innerWidth - 16,
+      bottom: window.innerHeight - 16
+    }
+  });
 
   useEffect(() => {
     if (iframeRef.current && currentVideo) {
@@ -86,8 +100,14 @@ export default function MiniPlayer() {
   // Mini player
   return (
     <div 
-      className={`fixed ${isMobile ? 'bottom-20 right-4' : 'bottom-4 right-4'} z-40 bg-card border border-border rounded-lg shadow-lg w-80 max-w-[90vw]`}
-      style={{ maxHeight: '240px' }}
+      ref={elementRef}
+      className={`fixed z-40 bg-card border border-border rounded-lg shadow-lg w-80 max-w-[90vw] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      style={{ 
+        left: position.x, 
+        top: position.y, 
+        maxHeight: '240px',
+        transition: isDragging ? 'none' : 'all 0.2s ease'
+      }}
     >
       <div className="aspect-video bg-black rounded-t-lg overflow-hidden">
         <iframe
@@ -99,10 +119,18 @@ export default function MiniPlayer() {
       </div>
       <div className="p-3 bg-card rounded-b-lg">
         <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
+          <div 
+            className="flex-1 min-w-0 cursor-grab active:cursor-grabbing"
+            onMouseDown={startDrag}
+            onTouchStart={startDrag}
+          >
             <p className="text-sm font-medium text-foreground truncate">
               {currentVideo.title}
             </p>
+            <div className="flex items-center gap-1 mt-1">
+              <Move className="h-3 w-3 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Drag to move</span>
+            </div>
           </div>
           <div className="flex items-center gap-1 ml-2">
             <Button

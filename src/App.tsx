@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,10 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider } from "@/hooks/useAuth";
 import AuthPage from "@/pages/Auth";
 
+// Lazy load pages for better performance
+const SavedPage = React.lazy(() => import("./pages/Saved"));
+const DownloadsPage = React.lazy(() => import("./pages/Downloads"));
+
 const queryClient = new QueryClient();
 
 function AppContent() {
@@ -28,6 +33,8 @@ function AppContent() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/saved" element={<React.Suspense fallback={<div>Loading...</div>}><SavedPage /></React.Suspense>} />
+              <Route path="/downloads" element={<React.Suspense fallback={<div>Loading...</div>}><DownloadsPage /></React.Suspense>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

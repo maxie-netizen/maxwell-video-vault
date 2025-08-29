@@ -34,31 +34,56 @@ export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
     fetchVoteStatus();
   }, [profile?.id, videoId]);
 
-  async function handleVote(v: number) {
+  async function handleVote(newVote: number) {
     if (!profile?.id) {
       toast({ title: "Login required", description: "Please log in to vote", variant: "destructive" });
       return;
     }
 
-    // Upsert new vote or update existing
-    const { error } = await supabase
-      .from("video_votes")
-      .upsert(
-        { user_id: profile.id, video_id: videoId, vote: v },
-        { onConflict: 'user_id,video_id' }
-      );
-    if (error) {
-      toast({ title: "Vote failed", description: error.message, variant: "destructive" });
-    } else {
-      setVote(v);
-      // reload counts
+    // If clicking same vote, remove it
+    const finalVote = vote === newVote ? null : newVote;
+
+    try {
+      if (finalVote === null) {
+        // Remove vote
+        const { error } = await supabase
+          .from("video_votes")
+          .delete()
+          .eq("user_id", profile.id)
+          .eq("video_id", videoId);
+        
+        if (error) throw error;
+      } else {
+        // Upsert new vote
+        const { error } = await supabase
+          .from("video_votes")
+          .upsert(
+            { user_id: profile.id, video_id: videoId, vote: finalVote },
+            { onConflict: 'user_id,video_id' }
+          );
+        
+        if (error) throw error;
+      }
+
+      setVote(finalVote);
+      
+      // Reload counts
       const { data: allVotes } = await supabase
         .from("video_votes")
         .select("vote")
         .eq("video_id", videoId);
+      
       const likes = (allVotes || []).filter((item) => item.vote === 1).length;
       const dislikes = (allVotes || []).filter((item) => item.vote === -1).length;
       setCounts({ likes, dislikes });
+
+      toast({ 
+        title: finalVote === 1 ? "Liked!" : finalVote === -1 ? "Disliked!" : "Vote removed",
+        description: finalVote ? "Thank you for your feedback!" : "Your vote has been removed."
+      });
+
+    } catch (error: any) {
+      toast({ title: "Vote failed", description: error.message, variant: "destructive" });
     }
   }
 

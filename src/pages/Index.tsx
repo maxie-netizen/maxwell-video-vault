@@ -8,6 +8,8 @@ import FooterReview from "@/components/FooterReview";
 import React from "react";
 import AdminPanel from "@/components/AdminPanel";
 import DeveloperAttribution from "@/components/DeveloperAttribution";
+import { VideoCache } from "@/lib/videoCache";
+import { Loader2 } from "lucide-react";
 
 // More demo videos and shorts
 const DEMO_VIDEOS = [
@@ -63,28 +65,51 @@ const SHORTS = [
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [results, setResults] = useState<any[]>([]);
   const [noResult, setNoResult] = useState(false);
   const { user, profile } = useAuth() || {};
 
-  // For restoring previous search
+  // Load personalized content on app start
   useEffect(() => {
-    const prev = localStorage.getItem("recentResults");
-    if (prev) {
-      setResults(JSON.parse(prev));
-    } else {
-      setResults(DEMO_VIDEOS);
-    }
-  }, []);
+    const loadInitialContent = async () => {
+      setInitialLoading(true);
+      
+      // Simulate lazy loading
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Get personalized videos based on user's search history
+      const personalizedVideos = VideoCache.getPersonalizedVideos(user?.id);
+      setResults(personalizedVideos);
+      setInitialLoading(false);
+    };
+
+    loadInitialContent();
+  }, [user?.id]);
 
   async function handleSearch(query: string) {
     setLoading(true);
     setNoResult(false);
+    
     try {
+      // Check cache first
+      const cachedResults = VideoCache.getCachedResults(query, user?.id);
+      
+      if (cachedResults) {
+        setResults(cachedResults);
+        setNoResult(cachedResults.length === 0);
+        setLoading(false);
+        return;
+      }
+
+      // Search API if not in cache
       const items = await searchYouTube(query);
       setResults(items);
       setNoResult(items.length === 0);
-      localStorage.setItem("recentResults", JSON.stringify(items));
+      
+      // Cache results for future use
+      VideoCache.cacheSearchResults(query, items, user?.id);
+      
     } catch (err) {
       setResults([]);
       setNoResult(true);
@@ -97,20 +122,30 @@ const Index = () => {
       <Header />
       <main className="max-w-2xl mx-auto px-4 flex-1 w-full pb-20 md:pb-4">
         <SearchBar onSearch={handleSearch} loading={loading} />
-        {noResult && (
-          <div className="text-center text-muted-foreground mt-16 text-lg">
-            No results found.
+        
+        {initialLoading ? (
+          <div className="flex items-center justify-center mt-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">Loading personalized content...</span>
           </div>
-        )}
-        <div className="mt-6 grid gap-6">
-          {results.map((video) => (
-            <VideoCard key={video.id.videoId} video={video} />
-          ))}
-        </div>
-        {!results.length && !noResult && (
-          <div className="text-center text-muted-foreground mt-20">
-            <span>Enter a search above to find YouTube videos and music.</span>
-          </div>
+        ) : (
+          <>
+            {noResult && (
+              <div className="text-center text-muted-foreground mt-16 text-lg">
+                No results found.
+              </div>
+            )}
+            <div className="mt-6 grid gap-6">
+              {results.map((video) => (
+                <VideoCard key={video.id.videoId} video={video} />
+              ))}
+            </div>
+            {!results.length && !noResult && (
+              <div className="text-center text-muted-foreground mt-20">
+                <span>Enter a search above to find YouTube videos and music.</span>
+              </div>
+            )}
+          </>
         )}
         {/* Admin Panel */}
         {profile?.role === "admin" && (

@@ -17,42 +17,42 @@ export default function Header() {
   return (
     <header className="w-full bg-card border-b border-border py-4 shadow-sm">
       <div className="container mx-auto flex items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          {isMobile && <SidebarTrigger className="text-foreground" />}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {isMobile && <SidebarTrigger className="text-foreground flex-shrink-0" />}
           <div 
-            className="flex items-center gap-2 cursor-pointer" 
+            className="flex items-center gap-2 cursor-pointer min-w-0 flex-1" 
             onClick={() => navigate("/")}
           >
             <img
               src="https://files.catbox.moe/urnjdz.jpg"
               alt="Maxwell Logo"
-              className="h-8 w-8 object-cover rounded-full"
+              className="h-8 w-8 object-cover rounded-full flex-shrink-0"
             />
-            <span className="text-xl font-bold text-foreground select-none">
+            <span className={`font-bold text-foreground select-none truncate ${isMobile ? 'text-base' : 'text-xl'}`}>
               Maxwell Downloader
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {user ? (
             <>
               {!isMobile && (
-                <span className="text-sm text-muted-foreground mr-2">
+                <span className="text-sm text-muted-foreground mr-2 truncate">
                   Hi, {profile?.username ?? "User"}
                 </span>
               )}
               <button
-                className="flex items-center gap-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground px-3 py-1.5 rounded-md transition-colors text-sm"
+                className={`flex items-center gap-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md transition-colors ${isMobile ? 'px-2 py-1.5 text-xs' : 'px-3 py-1.5 text-sm'}`}
                 onClick={logout}
                 title="Logout"
               >
-                <LogOut size={15} />
+                <LogOut size={isMobile ? 14 : 15} />
                 {!isMobile && "Logout"}
               </button>
             </>
           ) : (
             <button
-              className="bg-primary text-primary-foreground px-4 py-1.5 rounded-md font-semibold hover:bg-primary/90 transition-colors"
+              className={`bg-primary text-primary-foreground rounded-md font-semibold hover:bg-primary/90 transition-colors ${isMobile ? 'px-3 py-1.5 text-sm' : 'px-4 py-1.5 text-base'}`}
               onClick={() => navigate("/auth")}
             >
               Login
