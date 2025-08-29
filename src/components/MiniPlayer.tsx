@@ -4,12 +4,14 @@ import { usePlayer } from '@/contexts/PlayerContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDraggable } from '@/hooks/useDraggable';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function MiniPlayer() {
-  const { playerState, closePlayer, maximizePlayer, pausePlayer, resumePlayer } = usePlayer();
+  const { playerState, closePlayer, maximizePlayer, pausePlayer, resumePlayer, handleVideoEnd } = usePlayer();
   const { currentVideo, isMinimized, showPlayer, isPlaying } = playerState;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isMobile = useIsMobile();
+  const { profile } = useAuth() || {};
   
   const { position, elementRef, startDrag, isDragging } = useDraggable({
     initialPosition: { 
@@ -90,6 +92,17 @@ export default function MiniPlayer() {
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
               title="YouTube Video Player"
+              onLoad={() => {
+                // Listen for video end event
+                if (iframeRef.current) {
+                  iframeRef.current.addEventListener('ended', () => {
+                    handleVideoEnd();
+                    if (profile?.auto_hide_player !== false) {
+                      setTimeout(() => closePlayer(), 1000);
+                    }
+                  });
+                }
+              }}
             />
           </div>
         </div>
@@ -115,6 +128,17 @@ export default function MiniPlayer() {
           className="w-full h-full"
           allow="autoplay; encrypted-media; picture-in-picture"
           title="YouTube Mini Player"
+          onLoad={() => {
+            // Listen for video end event
+            if (iframeRef.current) {
+              iframeRef.current.addEventListener('ended', () => {
+                handleVideoEnd();
+                if (profile?.auto_hide_player !== false) {
+                  setTimeout(() => closePlayer(), 1000);
+                }
+              });
+            }
+          }}
         />
       </div>
       <div className="p-3 bg-card rounded-b-lg">

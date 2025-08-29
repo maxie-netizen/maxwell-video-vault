@@ -1,5 +1,6 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import VideoComments from "./VideoComments";
 
 interface VideoPlayerModalProps {
   open: boolean;
@@ -24,6 +25,8 @@ export default function VideoPlayerModal({ open, onOpenChange, videoId, title }:
           allow="autoplay; encrypted-media"
           className="w-full rounded-lg"
         />
+        
+        <VideoComments videoId={videoId} />
       </DialogContent>
     </Dialog>
   );

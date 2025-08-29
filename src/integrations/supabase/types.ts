@@ -45,18 +45,27 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auto_hide_player: boolean | null
+          avatar_url: string | null
+          bio: string | null
           created_at: string | null
           id: string
           role: string
           username: string
         }
         Insert: {
+          auto_hide_player?: boolean | null
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           id: string
           role?: string
           username: string
         }
         Update: {
+          auto_hide_player?: boolean | null
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           id?: string
           role?: string

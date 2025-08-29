@@ -19,6 +19,7 @@ interface PlayerContextType {
   closePlayer: () => void;
   pausePlayer: () => void;
   resumePlayer: () => void;
+  handleVideoEnd: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -57,6 +58,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleVideoEnd = () => {
+    setPlayerState(prev => ({ ...prev, isPlaying: false }));
+  };
+
   const pausePlayer = () => {
     setPlayerState(prev => ({ ...prev, isPlaying: false }));
   };
@@ -75,6 +80,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         closePlayer,
         pausePlayer,
         resumePlayer,
+        handleVideoEnd,
       }}
     >
       {children}

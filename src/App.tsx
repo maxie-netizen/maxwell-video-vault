@@ -18,6 +18,7 @@ import AuthPage from "@/pages/Auth";
 // Lazy load pages for better performance
 const SavedPage = React.lazy(() => import("./pages/Saved"));
 const DownloadsPage = React.lazy(() => import("./pages/Downloads"));
+const ProfilePage = React.lazy(() => import("./pages/Profile"));
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function AppContent() {
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/saved" element={<React.Suspense fallback={<div>Loading...</div>}><SavedPage /></React.Suspense>} />
               <Route path="/downloads" element={<React.Suspense fallback={<div>Loading...</div>}><DownloadsPage /></React.Suspense>} />
+              <Route path="/profile" element={<React.Suspense fallback={<div>Loading...</div>}><ProfilePage /></React.Suspense>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

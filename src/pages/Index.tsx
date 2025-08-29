@@ -10,6 +10,7 @@ import AdminPanel from "@/components/AdminPanel";
 import DeveloperAttribution from "@/components/DeveloperAttribution";
 import { VideoCache } from "@/lib/videoCache";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // More demo videos and shorts
 const DEMO_VIDEOS = [
@@ -68,6 +69,7 @@ const Index = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [results, setResults] = useState<any[]>([]);
   const [noResult, setNoResult] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { user, profile } = useAuth() || {};
 
   // Load personalized content on app start
@@ -79,13 +81,25 @@ const Index = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Get personalized videos based on user's search history
-      const personalizedVideos = VideoCache.getPersonalizedVideos(user?.id);
+      const personalizedVideos = VideoCache.getPersonalizedVideos(user?.id, false);
       setResults(personalizedVideos);
       setInitialLoading(false);
     };
 
     loadInitialContent();
   }, [user?.id]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    
+    // Show random videos on refresh
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const randomVideos = VideoCache.getPersonalizedVideos(user?.id, true);
+    setResults(randomVideos);
+    setNoResult(false);
+    
+    setIsRefreshing(false);
+  };
 
   async function handleSearch(query: string) {
     setLoading(true);
@@ -122,6 +136,19 @@ const Index = () => {
       <Header />
       <main className="max-w-2xl mx-auto px-4 flex-1 w-full pb-20 md:pb-4">
         <SearchBar onSearch={handleSearch} loading={loading} />
+        
+        {!loading && !initialLoading && (
+          <div className="flex justify-center mt-4">
+            <Button 
+              variant="outline" 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="text-sm"
+            >
+              {isRefreshing ? "Refreshing..." : "🔄 Refresh Videos"}
+            </Button>
+          </div>
+        )}
         
         {initialLoading ? (
           <div className="flex items-center justify-center mt-20">

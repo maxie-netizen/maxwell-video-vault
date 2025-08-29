@@ -192,11 +192,12 @@ export class VideoCache {
   }
 
   // Get personalized initial videos based on user's search history
-  static getPersonalizedVideos(userId?: string): any[] {
+  static getPersonalizedVideos(userId?: string, forceRandom: boolean = false): any[] {
     const recentSearches = this.getRecentSearches(userId);
     const cachedSearches = this.getCachedSearches(userId);
     
-    if (recentSearches.length === 0 || cachedSearches.length === 0) {
+    // If forced refresh or no search history, return random videos
+    if (forceRandom || recentSearches.length === 0 || cachedSearches.length === 0) {
       return this.getRandomDemoVideos();
     }
 
