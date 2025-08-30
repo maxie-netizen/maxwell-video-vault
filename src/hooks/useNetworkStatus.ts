@@ -111,7 +111,7 @@ export function useNetworkStatus() {
     measurePing();
 
     // Set up periodic ping monitoring (every 30 seconds)
-    const interval = setInterval(measurePing, 30000);
+    const interval = setInterval(measurePing, 5000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
