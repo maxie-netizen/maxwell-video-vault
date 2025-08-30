@@ -43,6 +43,45 @@ export type Database = {
           },
         ]
       }
+      downloads: {
+        Row: {
+          download_url: string
+          downloaded_at: string
+          expires_at: string | null
+          file_size: number | null
+          format: string
+          id: string
+          thumbnail: string | null
+          title: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          download_url: string
+          downloaded_at?: string
+          expires_at?: string | null
+          file_size?: number | null
+          format: string
+          id?: string
+          thumbnail?: string | null
+          title: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          download_url?: string
+          downloaded_at?: string
+          expires_at?: string | null
+          file_size?: number | null
+          format?: string
+          id?: string
+          thumbnail?: string | null
+          title?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           auto_hide_player: boolean | null
