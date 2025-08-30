@@ -7,7 +7,7 @@ export default function DownloadQualityModal({ open, onOpenChange, onSelectQuali
   onOpenChange: (open: boolean) => void;
   onSelectQuality: (q: string) => void;
 }) {
-  const qualities = ["1080p", "720p", "480p", "360p", "240p", "Audio Only"];
+  const qualities = ["360p", "Audio Only"];
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md w-full">

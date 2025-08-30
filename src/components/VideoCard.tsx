@@ -59,47 +59,44 @@ export default function VideoCard({ video }: VideoCardProps) {
       return;
     }
     setModalOpen(false);
+    setDownloading(true);
 
-    // Only implement Audio Only via backend for now
-    if (quality === "Audio Only") {
-      setDownloading(true);
-      try {
-        const res = await fetch(
-          `https://viwfeqkuwblobybygilr.functions.supabase.co/youtube-download`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ videoId: id.videoId }),
-          }
-        );
-        const data = await res.json();
-        if (data.downloadUrl) {
-          // Try to open download in a new tab, then show a message how to return
-          window.open(data.downloadUrl, "_blank", "noopener,noreferrer");
-          toast({
-            title: "Download Started",
-            description: "Your MP3 file is being prepared. After downloading, return to Maxwell Downloader.",
-            variant: "default",
-            duration: 7000
-          });
-        } else {
-          throw new Error(data.error || "Unable to retrieve download link. Please try again later.");
-        }
-      } catch (e: any) {
+    try {
+      const videoUrl = `https://youtu.be/${id.videoId}`;
+      const apiUrl = quality === "Audio Only" 
+        ? `https://apis-keith.vercel.app/download/audio?url=${encodeURIComponent(videoUrl)}`
+        : `https://apis-keith.vercel.app/download/video?url=${encodeURIComponent(videoUrl)}`;
+
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+
+      if (data.status && data.result) {
+        // Create a temporary link element and trigger download
+        const link = document.createElement('a');
+        link.href = data.result;
+        link.download = `${snippet.title.substring(0, 50)}.${quality === "Audio Only" ? "mp3" : "mp4"}`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
         toast({
-          title: "Download failed",
-          description: e.message || "Unknown error",
-          variant: "destructive",
+          title: "Download Started",
+          description: `Your ${quality === "Audio Only" ? "MP3" : "MP4"} file is downloading.`,
+          variant: "default",
+          duration: 5000
         });
-      } finally {
-        setDownloading(false);
+      } else {
+        throw new Error("Unable to retrieve download link. Please try again later.");
       }
-    } else {
+    } catch (e: any) {
       toast({
-        title: "Not supported",
-        description: `Only Audio Only downloads are enabled in demo`,
+        title: "Download failed",
+        description: e.message || "Network error. Please check your connection and try again.",
         variant: "destructive",
       });
+    } finally {
+      setDownloading(false);
     }
   }
 

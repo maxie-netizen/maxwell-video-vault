@@ -58,9 +58,22 @@ export default function Saved() {
           <h1 className="text-2xl font-bold text-foreground mb-6">Saved Videos</h1>
           
           {loading ? (
-            <div className="flex items-center justify-center mt-20">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2 text-muted-foreground">Loading saved videos...</span>
+            <div className="grid gap-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-card shadow-lg rounded-2xl overflow-hidden border border-border">
+                  <div className="w-full h-48 bg-muted animate-pulse" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 bg-muted rounded animate-pulse" />
+                    <div className="h-3 bg-muted rounded w-2/3 animate-pulse" />
+                    <div className="h-3 bg-muted rounded w-1/3 animate-pulse" />
+                    <div className="flex gap-2 mt-3">
+                      <div className="h-8 bg-muted rounded w-16 animate-pulse" />
+                      <div className="h-8 bg-muted rounded w-20 animate-pulse" />
+                      <div className="h-8 bg-muted rounded w-16 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : savedVideos.length === 0 ? (
             <div className="text-center text-muted-foreground mt-20">
