@@ -99,3 +99,32 @@
     @apply bg-background text-foreground;
   }
 }
+/* Prevent horizontal scrolling and ensure fixed positioning */
+body.mobile-app {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Ensure main content area scrolls properly */
+.mobile-app main {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
