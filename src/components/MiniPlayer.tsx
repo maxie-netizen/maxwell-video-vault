@@ -110,15 +110,15 @@ export default function MiniPlayer() {
     );
   }
 
-  // Mini player
+  // Mini player - smaller for mobile
   return (
     <div 
       ref={elementRef}
-      className={`fixed z-40 bg-card border border-border rounded-lg shadow-lg w-80 max-w-[90vw] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`fixed z-40 bg-card border border-border rounded-lg shadow-lg ${isMobile ? 'w-64 max-w-[80vw]' : 'w-80 max-w-[90vw]'} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       style={{ 
         left: position.x, 
         top: position.y, 
-        maxHeight: '240px',
+        maxHeight: isMobile ? '180px' : '240px',
         transition: isDragging ? 'none' : 'all 0.2s ease'
       }}
     >
@@ -141,19 +141,19 @@ export default function MiniPlayer() {
           }}
         />
       </div>
-      <div className="p-3 bg-card rounded-b-lg">
+      <div className={`p-2 bg-card rounded-b-lg ${isMobile ? 'p-2' : 'p-3'}`}>
         <div className="flex items-center justify-between">
           <div 
             className="flex-1 min-w-0 cursor-grab active:cursor-grabbing"
             onMouseDown={startDrag}
             onTouchStart={startDrag}
           >
-            <p className="text-sm font-medium text-foreground truncate">
+            <p className={`font-medium text-foreground truncate ${isMobile ? 'text-xs' : 'text-sm'}`}>
               {currentVideo.title}
             </p>
             <div className="flex items-center gap-1 mt-1">
-              <Move className="h-3 w-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Drag to move</span>
+              <Move className="h-2 w-2 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Drag</span>
             </div>
           </div>
           <div className="flex items-center gap-1 ml-2">
@@ -161,25 +161,25 @@ export default function MiniPlayer() {
               variant="ghost"
               size="sm"
               onClick={isPlaying ? pausePlayer : resumePlayer}
-              className="h-8 w-8 p-0"
+              className={`p-0 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`}
             >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {isPlaying ? <Pause className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} /> : <Play className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={maximizePlayer}
-              className="h-8 w-8 p-0"
+              className={`p-0 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`}
             >
-              <Maximize2 className="h-4 w-4" />
+              <Maximize2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={closePlayer}
-              className="h-8 w-8 p-0"
+              className={`p-0 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`}
             >
-              <X className="h-4 w-4" />
+              <X className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
             </Button>
           </div>
         </div>

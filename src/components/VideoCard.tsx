@@ -18,7 +18,6 @@ export default function VideoCard({ video }: VideoCardProps) {
   const { snippet, id } = video;
   const [open, setOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [downloading, setDownloading] = useState(false);
   const [duration, setDuration] = useState<string | null>(null);
   const { user } = useAuth() || {};
   const navigate = useNavigate();
@@ -45,59 +44,10 @@ export default function VideoCard({ video }: VideoCardProps) {
 
   function handleDownloadClick() {
     if (!user) {
-      setModalOpen(false);
       setTimeout(() => navigate("/auth"), 150); // prompt login
       return;
     }
     setModalOpen(true);
-  }
-
-  async function handleQualitySelect(quality: string) {
-    if (!user) {
-      setModalOpen(false);
-      setTimeout(() => navigate("/auth"), 150);
-      return;
-    }
-    setModalOpen(false);
-    setDownloading(true);
-
-    try {
-      const videoUrl = `https://youtu.be/${id.videoId}`;
-      const apiUrl = quality === "Audio Only" 
-        ? `https://apis-keith.vercel.app/download/audio?url=${encodeURIComponent(videoUrl)}`
-        : `https://apis-keith.vercel.app/download/video?url=${encodeURIComponent(videoUrl)}`;
-
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-
-      if (data.status && data.result) {
-        // Create a temporary link element and trigger download
-        const link = document.createElement('a');
-        link.href = data.result;
-        link.download = `${snippet.title.substring(0, 50)}.${quality === "Audio Only" ? "mp3" : "mp4"}`;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        toast({
-          title: "Download Started",
-          description: `Your ${quality === "Audio Only" ? "MP3" : "MP4"} file is downloading.`,
-          variant: "default",
-          duration: 5000
-        });
-      } else {
-        throw new Error("Unable to retrieve download link. Please try again later.");
-      }
-    } catch (e: any) {
-      toast({
-        title: "Download failed",
-        description: e.message || "Network error. Please check your connection and try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setDownloading(false);
-    }
   }
 
   const handlePlayVideo = () => {
@@ -130,18 +80,22 @@ export default function VideoCard({ video }: VideoCardProps) {
             variant="secondary"
             className="flex items-center gap-2"
             onClick={handleDownloadClick}
-            disabled={downloading}
           >
-            <Download size={16} /> {downloading ? "Downloading..." : "Download"}
+            <Download size={16} /> Download
           </Button>
           <SaveButton videoId={id.videoId} />
         </div>
         <LikeDislikeButtons videoId={id.videoId} />
       </div>
       <DownloadQualityModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        onSelectQuality={handleQualitySelect}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        video={{
+          id: id.videoId,
+          title: snippet.title,
+          thumbnail: snippet.thumbnails.high.url
+        }}
+        videoUrl={`https://youtu.be/${id.videoId}`}
       />
       <VideoPlayerModal
         open={open}

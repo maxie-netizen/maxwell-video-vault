@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { LogOut, Menu } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import NetworkStatus from "@/components/NetworkStatus";
 
 export default function Header() {
   const { user, profile, logout } = useAuth() || {};
@@ -34,6 +35,7 @@ export default function Header() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
+          <NetworkStatus />
           {user ? (
             <>
               {!isMobile && (
