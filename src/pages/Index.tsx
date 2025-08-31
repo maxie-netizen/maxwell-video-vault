@@ -143,67 +143,67 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex flex-col">
       <Header />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 pb-20 md:pb-6 overflow-x-hidden">
-        <div className="sticky top-2 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 rounded-lg">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 pb-32 md:pb-6 overflow-x-hidden relative z-10">
+        <div className="sticky top-2 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 rounded-lg mb-6">
           <SearchBar onSearch={handleSearch} loading={loading} />
         </div>
-        
-        {initialLoading ? (
-          <div className="mt-8 grid gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-xl overflow-hidden border border-border bg-white dark:bg-slate-800 shadow-sm">
-                <Skeleton className="h-48 w-full rounded-none" />
-                <div className="p-4">
-                  <Skeleton className="h-6 w-4/5 mb-3" />
-                  <Skeleton className="h-4 w-3/5 mb-4" />
-                  <div className="flex justify-between items-center">
-                    <Skeleton className="h-3 w-1/4" />
-                    <Skeleton className="h-3 w-1/4" />
+        <div className="relative z-10">
+          {initialLoading ? (
+            <div className="mt-8 grid gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="rounded-xl overflow-hidden border border-border bg-white dark:bg-slate-800 shadow-sm mx-2 md:mx-0">
+                  <Skeleton className="h-48 w-full rounded-none" />
+                  <div className="p-4">
+                    <Skeleton className="h-6 w-4/5 mb-3" />
+                    <Skeleton className="h-4 w-3/5 mb-4" />
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-3 w-1/4" />
+                      <Skeleton className="h-3 w-1/4" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <>
-            {noResult && (
-              <div className="text-center py-16">
-                <div className="mx-auto w-24 h-24 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
+              ))}
+            </div>
+          ) : (
+            <>
+              {noResult && (
+                <div className="text-center py-16 mx-2 md:mx-0">
+                  <div className="mx-auto w-24 h-24 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-slate-800 dark:text-slate-200">No results found</h3>
+                  <p className="text-slate-600 dark:text-slate-400">Try different keywords or search for something else</p>
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-slate-800 dark:text-slate-200">No results found</h3>
-                <p className="text-slate-600 dark:text-slate-400">Try different keywords or search for something else</p>
-              </div>
-            )}
+              )}
             
-            {results.length > 0 && (
-              <>
-                <div className="mt-6 mb-4 flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
-                    {VideoCache.hasSearchHistory(user?.id) ? "Personalized for you" : "Trending videos"}
-                  </h2>
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    {results.length} {results.length === 1 ? 'video' : 'videos'}
-                  </span>
-                </div>
-                
-                <div className="grid gap-4 w-full">
-                  {results.map((video) => (
-                    <VideoCard key={video.id.videoId || video.id} video={video} />
-                  ))}
-                </div>
-                
-                {hasMore && (
-                  <div ref={loadingRef} className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-slate-400 dark:text-slate-500" />
+              {results.length > 0 && (
+                <>
+                  <div className="mt-6 mb-4 flex justify-between items-center mx-2 md:mx-0">
+                    <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
+                      {VideoCache.hasSearchHistory(user?.id) ? "Personalized for you" : "Trending videos"}
+                    </h2>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      {results.length} {results.length === 1 ? 'video' : 'videos'}
+                    </span>
                   </div>
-                )}
-              </>
-            )}
+                  
+                  <div className="grid gap-6 mx-2 md:mx-0 mb-8">
+                    {results.map((video) => (
+                      <VideoCard key={video.id.videoId || video.id} video={video} />
+                    ))}
+                  </div>
+                  
+                  {hasMore && (
+                    <div ref={loadingRef} className="flex justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-slate-400 dark:text-slate-500" />
+                    </div>
+                  )}
+                </>
+              )}
             
             {!results.length && !noResult && (
               <div className="text-center py-16">
@@ -227,12 +227,15 @@ const Index = () => {
             )}
           </>
         )}
+        </div>
         
         {/* Admin Panel */}
         {profile?.role === "admin" && (
-          <div className="mt-10">
-            <FooterReview />
-            <div className="mt-4">
+          <div className="mt-16 mb-8 mx-2 md:mx-0 relative z-0">
+            <div className="bg-background border border-border rounded-lg p-4 mb-4">
+              <FooterReview />
+            </div>
+            <div className="bg-background border border-border rounded-lg p-4">
               <React.Suspense fallback={<div>Loading admin...</div>}>
                 <AdminPanel />
               </React.Suspense>
@@ -241,9 +244,11 @@ const Index = () => {
         )}
       </main>
       
-      {/* Extra Footer Sections */}
-      <FooterReview />
-      <DeveloperAttribution />
+      {/* Footer Sections - Fixed at bottom with proper spacing */}
+      <div className="relative z-0 mt-auto">
+        <FooterReview />
+        <DeveloperAttribution />
+      </div>
     </div>
   );
 };

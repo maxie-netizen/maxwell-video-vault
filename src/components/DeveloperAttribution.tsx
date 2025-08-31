@@ -3,7 +3,7 @@ import React from "react";
 
 export default function DeveloperAttribution() {
   return (
-    <div className="w-full flex justify-center items-center bg-neutral-900 py-6 mt-10 border-t border-neutral-800">
+    <div className="w-full flex justify-center items-center bg-neutral-900 py-6 border-t border-neutral-800">
       <div className="flex flex-col items-center">
         <img
           src="https://files.catbox.moe/urnjdz.jpg"

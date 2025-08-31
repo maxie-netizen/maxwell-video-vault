@@ -47,7 +47,7 @@ export default function FooterReview() {
   };
 
   return (
-    <footer className="mx-auto max-w-2xl p-6 mt-10 border-t border-neutral-800 bg-neutral-950">
+    <footer className="w-full p-6 mt-8 bg-neutral-950 border-t border-neutral-800">
       <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-2 md:items-center">
         <input
           type="text"
