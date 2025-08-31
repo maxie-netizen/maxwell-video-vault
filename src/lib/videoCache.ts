@@ -191,6 +191,12 @@ export class VideoCache {
     }
   }
 
+  // Check if user has search history
+  static hasSearchHistory(userId?: string): boolean {
+    const recentSearches = this.getRecentSearches(userId);
+    return recentSearches.length > 0;
+  }
+
   // Get personalized initial videos based on user's search history
   static getPersonalizedVideos(userId?: string, forceRandom: boolean = false): any[] {
     const recentSearches = this.getRecentSearches(userId);
