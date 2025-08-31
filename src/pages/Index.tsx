@@ -17,6 +17,9 @@ const Index = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [results, setResults] = useState<any[]>([]);
   const [noResult, setNoResult] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [currentQuery, setCurrentQuery] = useState<string>("");
   const { user, profile } = useAuth() || {};
   const observer = useRef<IntersectionObserver>();
   const loadingRef = useRef<HTMLDivElement>(null);
@@ -30,14 +33,16 @@ const Index = () => {
         
         // If user has no search history, show trending content
         if (personalizedVideos.length === 0) {
-          const trendingVideos = await getTrendingVideos();
-          setResults(trendingVideos);
+          const response = await getTrendingVideos();
+          setResults(response.items);
+          setNextPageToken(response.nextPageToken);
+          setCurrentQuery("");
         } else {
           setResults(personalizedVideos);
+          setCurrentQuery("");
         }
       } catch (err) {
         console.error("Failed to load initial content:", err);
-        // Even if there's an error, we don't want to keep the loading state forever
         setResults([]);
       } finally {
         setInitialLoading(false);
@@ -47,20 +52,43 @@ const Index = () => {
     loadInitialContent();
   }, [user?.id]);
 
-  // Lazy loading setup
+  // Load more videos function
+  const loadMoreVideos = useCallback(async () => {
+    if (!hasMore || loading || !nextPageToken) return;
+    
+    setLoading(true);
+    try {
+      let response;
+      if (currentQuery) {
+        response = await searchYouTube(currentQuery, nextPageToken);
+      } else {
+        response = await getTrendingVideos(nextPageToken);
+      }
+      
+      const newVideos = response.items;
+      setResults(prev => [...prev, ...newVideos]);
+      setNextPageToken(response.nextPageToken);
+      setHasMore(!!response.nextPageToken);
+    } catch (err) {
+      console.error("Failed to load more videos:", err);
+      setHasMore(false);
+    }
+    setLoading(false);
+  }, [hasMore, loading, nextPageToken, currentQuery]);
+
+  // Infinite scroll setup
   useEffect(() => {
     if (initialLoading) return;
     
     const options = {
       root: null,
-      rootMargin: "20px",
+      rootMargin: "100px",
       threshold: 0.1,
     };
     
     observer.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && results.length > 0) {
-        // In a real app, this would load more videos
-        // For demo, we're just observing but not loading additional content
+      if (entries[0].isIntersecting && hasMore && !loading) {
+        loadMoreVideos();
       }
     }, options);
     
@@ -73,11 +101,12 @@ const Index = () => {
         observer.current.disconnect();
       }
     };
-  }, [initialLoading, results]);
+  }, [initialLoading, hasMore, loading, loadMoreVideos]);
 
   const handleSearch = useCallback(async (query: string) => {
     setLoading(true);
     setNoResult(false);
+    setCurrentQuery(query);
     
     try {
       // Check cache first
@@ -86,14 +115,19 @@ const Index = () => {
       if (cachedResults) {
         setResults(cachedResults);
         setNoResult(cachedResults.length === 0);
+        setNextPageToken(null);
+        setHasMore(false);
         setLoading(false);
         return;
       }
 
       // Search API if not in cache
-      const items = await searchYouTube(query);
+      const response = await searchYouTube(query);
+      const items = response.items;
       setResults(items);
       setNoResult(items.length === 0);
+      setNextPageToken(response.nextPageToken);
+      setHasMore(!!response.nextPageToken);
       
       // Cache results for future use
       VideoCache.cacheSearchResults(query, items, user?.id);
@@ -101,6 +135,7 @@ const Index = () => {
     } catch (err) {
       setResults([]);
       setNoResult(true);
+      setHasMore(false);
     }
     setLoading(false);
   }, [user?.id]);
@@ -108,7 +143,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex flex-col">
       <Header />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 pb-20 md:pb-6">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 pb-20 md:pb-6 overflow-x-hidden">
         <div className="sticky top-2 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 rounded-lg">
           <SearchBar onSearch={handleSearch} loading={loading} />
         </div>
@@ -156,15 +191,17 @@ const Index = () => {
                   </span>
                 </div>
                 
-                <div className="grid gap-6">
+                <div className="grid gap-4 w-full">
                   {results.map((video) => (
                     <VideoCard key={video.id.videoId || video.id} video={video} />
                   ))}
                 </div>
                 
-                <div ref={loadingRef} className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-slate-400 dark:text-slate-500" />
-                </div>
+                {hasMore && (
+                  <div ref={loadingRef} className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-slate-400 dark:text-slate-500" />
+                  </div>
+                )}
               </>
             )}
             

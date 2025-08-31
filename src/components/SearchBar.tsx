@@ -43,8 +43,8 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
   async function fetchSuggestions(query: string) {
     setSuggestLoading(true);
     try {
-      const items = await searchYouTube(query);
-      setSuggestions(items);
+      const response = await searchYouTube(query);
+      setSuggestions(response.items || []);
     } catch {
       setSuggestions([]);
     }
@@ -95,12 +95,12 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
         )}
         <button
           className={classNames(
-            "ml-2 mr-2 px-7 py-2 rounded-full font-semibold transition-colors",
+            "ml-2 mr-2 px-4 py-2 rounded-full font-medium transition-colors text-sm",
             "bg-red-600 hover:bg-red-700 text-white"
           )}
           disabled={loading}
         >
-          {loading ? "Searching..." : "Search"}
+          {loading ? "..." : "Go"}
         </button>
       </form>
       {(showDropdown && (recent.length > 0 || suggestions.length > 0)) && (

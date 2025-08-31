@@ -29,8 +29,8 @@ export default function Header() {
               alt="Maxwell Logo"
               className="h-8 w-8 object-cover rounded-full flex-shrink-0"
             />
-            <span className={`font-bold text-foreground select-none truncate ${isMobile ? 'text-base' : 'text-xl'}`}>
-              Maxwell Downloader
+            <span className={`font-bold text-foreground select-none truncate ${isMobile ? 'text-sm' : 'text-lg'}`}>
+              MAXIE DWNLDER
             </span>
           </div>
         </div>

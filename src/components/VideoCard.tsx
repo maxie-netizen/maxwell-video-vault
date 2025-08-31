@@ -60,29 +60,31 @@ export default function VideoCard({ video }: VideoCardProps) {
   };
 
   return (
-    <div className="bg-card shadow-lg rounded-2xl mb-6 overflow-hidden border border-border animate-fade-in">
+    <div className="bg-card shadow-lg rounded-2xl mb-4 overflow-hidden border border-border animate-fade-in w-full">
       <img src={snippet.thumbnails.high.url} alt={snippet.title} className="w-full h-48 object-cover" />
       <div className="p-4 flex flex-col gap-2">
-        <div className="font-semibold text-base text-foreground mb-1">{snippet.title}</div>
-        <div className="text-sm text-muted-foreground">{snippet.channelTitle}</div>
+        <div className="font-semibold text-base text-foreground mb-1 line-clamp-2">{snippet.title}</div>
+        <div className="text-sm text-muted-foreground truncate">{snippet.channelTitle}</div>
         {duration && (
           <div className="text-xs text-muted-foreground mb-1">Length: {duration}</div>
         )}
         <div className="flex gap-2 mt-3 flex-wrap">
           <Button
             onClick={handlePlayVideo}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-4 py-2 flex items-center font-semibold gap-2 transition-colors"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-4 py-2 flex items-center font-semibold gap-2 transition-colors flex-1 min-w-0"
           >
             <Play size={16} />
             Play
           </Button>
           <Button
             variant="secondary"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 flex-1 min-w-0"
             onClick={handleDownloadClick}
           >
             <Download size={16} /> Download
           </Button>
+        </div>
+        <div className="w-full">
           <SaveButton videoId={id.videoId} />
         </div>
         <LikeDislikeButtons videoId={id.videoId} />
