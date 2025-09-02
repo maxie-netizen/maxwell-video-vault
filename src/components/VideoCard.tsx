@@ -60,28 +60,28 @@ export default function VideoCard({ video }: VideoCardProps) {
   };
 
   return (
-    <div className="video-card bg-card shadow-lg rounded-2xl mb-4 overflow-hidden border border-border animate-fade-in w-full max-w-full relative z-10">
-      <img src={snippet.thumbnails.high.url} alt={snippet.title} className="w-full h-48 object-cover" />
-      <div className="p-4 flex flex-col gap-2">
-        <div className="font-semibold text-base text-foreground mb-1 line-clamp-2">{snippet.title}</div>
-        <div className="text-sm text-muted-foreground truncate">{snippet.channelTitle}</div>
+    <div className="video-card bg-card shadow-lg rounded-2xl mb-4 overflow-hidden border border-border animate-fade-in w-full relative z-10">
+      <img src={snippet.thumbnails.high.url} alt={snippet.title} className="w-full h-44 sm:h-48 object-cover" />
+      <div className="p-3 sm:p-4 flex flex-col gap-2">
+        <div className="font-semibold text-sm sm:text-base text-foreground mb-1 line-clamp-2">{snippet.title}</div>
+        <div className="text-xs sm:text-sm text-muted-foreground truncate">{snippet.channelTitle}</div>
         {duration && (
           <div className="text-xs text-muted-foreground mb-1">Length: {duration}</div>
         )}
-        <div className="flex gap-2 mt-3 flex-wrap">
+        <div className="flex gap-2 mt-2 sm:mt-3">
           <Button
             onClick={handlePlayVideo}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-4 py-2 flex items-center font-semibold gap-2 transition-colors flex-1 min-w-0"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 flex items-center font-semibold gap-1 sm:gap-2 transition-colors flex-1 text-xs sm:text-sm"
           >
-            <Play size={16} />
+            <Play size={14} />
             Play
           </Button>
           <Button
             variant="secondary"
-            className="flex items-center gap-2 flex-1 min-w-0"
+            className="flex items-center gap-1 sm:gap-2 flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm"
             onClick={handleDownloadClick}
           >
-            <Download size={16} /> Download
+            <Download size={14} /> Download
           </Button>
         </div>
         <div className="w-full">

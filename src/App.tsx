@@ -78,7 +78,7 @@ function AppContent() {
     <PlayerProvider>
       <SidebarProvider>
         <div className={`min-h-screen flex w-full ${isMobile ? 'flex-col' : ''} overflow-hidden`}>
-          {!isMobile && <AppSidebar />}
+          <AppSidebar />
           <main className={`flex-1 flex flex-col ${isMobile ? 'h-screen' : ''} overflow-hidden`}>
             <div className={`flex-1 ${isMobile ? 'overflow-y-auto scroll-smooth' : 'overflow-y-auto'}`} 
                  style={isMobile ? { WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' } : {}}>

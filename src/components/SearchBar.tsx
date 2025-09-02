@@ -66,13 +66,13 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto mt-6 mb-4 relative z-20">
+    <div className="w-full max-w-md mx-auto mt-4 mb-3 relative z-20">
       <form
         onSubmit={handleSubmit}
         className="flex items-center relative bg-neutral-800 rounded-full"
       >
-        <span className="px-3 text-white">
-          <Search />
+        <span className="px-2 text-white">
+          <Search size={16} />
         </span>
         <input
           ref={inputRef}
@@ -80,14 +80,14 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
           onChange={handleChange}
           onFocus={() => setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 120)}
-          className="flex-1 bg-transparent text-white placeholder-gray-400 py-3 px-2 rounded-full outline-none text-base"
-          placeholder="Search videos or music..."
+          className="flex-1 bg-transparent text-white placeholder-gray-400 py-2 px-1 rounded-full outline-none text-sm"
+          placeholder="Search videos..."
         />
         {value && (
           <button
             type="button"
             onClick={() => setValue("")}
-            className="rounded-full bg-neutral-700 text-white px-2 py-1 mx-1 mr-0 hover:bg-neutral-600"
+            className="rounded-full bg-neutral-700 text-white px-1.5 py-0.5 mx-1 mr-0 hover:bg-neutral-600 text-sm"
             aria-label="Clear"
           >
             ×
@@ -95,7 +95,7 @@ export default function SearchBar({ onSearch, loading }: SearchBarProps) {
         )}
         <button
           className={classNames(
-            "ml-2 mr-2 px-4 py-2 rounded-full font-medium transition-colors text-sm",
+            "ml-1 mr-1 px-3 py-1.5 rounded-full font-medium transition-colors text-xs",
             "bg-red-600 hover:bg-red-700 text-white"
           )}
           disabled={loading}
