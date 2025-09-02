@@ -32,87 +32,56 @@ const LoadingSpinner = () => (
 function AppContent() {
   const isMobile = useIsMobile();
 
-  // Mobile optimization - prevent zoom on input focus and restrict scrolling
+  // Mobile optimization for better performance and UX
   useEffect(() => {
-    // Prevent zooming on mobile
-    const disableZoom = () => {
-      const viewport = document.querySelector('meta[name=viewport]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-      }
-    };
-    
-    // Prevent horizontal scrolling and fix layout
-    const preventHorizontalScroll = () => {
-      document.body.style.overflowX = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-    };
-    
-    // Prevent pull-to-refresh
-    const preventPullToRefresh = () => {
-      document.body.style.overscrollBehavior = 'none';
-    };
-    
-    // Add mobile class for CSS targeting
-    const addMobileClass = () => {
-      document.body.classList.add('mobile-app');
-    };
-
     if (isMobile) {
-      disableZoom();
-      preventHorizontalScroll();
-      preventPullToRefresh();
-      addMobileClass();
+      // Enhanced mobile viewport settings
+      const viewport = document.querySelector('meta[name=viewport]') || document.createElement('meta');
+      viewport.setAttribute('name', 'viewport');
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+      if (!document.querySelector('meta[name=viewport]')) {
+        document.head.appendChild(viewport);
+      }
       
-      // Additional touch event handling to prevent default behaviors
-      document.addEventListener('touchstart', handleTouchStart, { passive: false });
-      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      // Mobile-specific body styling
+      document.body.style.cssText = `
+        overflow-x: hidden;
+        overflow-y: auto;
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      `;
+      
+      document.body.classList.add('mobile-app');
+      
+      // Prevent default touch behaviors
+      const preventMultiTouch = (e: TouchEvent) => {
+        if (e.touches.length > 1) e.preventDefault();
+      };
+      
+      document.addEventListener('touchstart', preventMultiTouch, { passive: false });
+      document.addEventListener('gesturestart', (e) => e.preventDefault());
+      
+      return () => {
+        document.body.classList.remove('mobile-app');
+        document.removeEventListener('touchstart', preventMultiTouch);
+      };
     }
-    
-    return () => {
-      document.body.classList.remove('mobile-app');
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-    };
   }, [isMobile]);
 
-  // Prevent default touch behaviors that could cause zooming or scrolling
-  const handleTouchStart = (e) => {
-    if (e.touches.length > 1) {
-      e.preventDefault();
-    }
-  };
-
-  const handleTouchMove = (e) => {
-    // Prevent horizontal scrolling
-    if (Math.abs(e.touches[0].pageX - startX) > Math.abs(e.touches[0].pageY - startY)) {
-      e.preventDefault();
-    }
-  };
-
-  let startX = 0;
-  let startY = 0;
-
-  const handleTouchStartRecord = (e) => {
-    startX = e.touches[0].pageX;
-    startY = e.touches[0].pageY;
-  };
-
-  useEffect(() => {
-    document.addEventListener('touchstart', handleTouchStartRecord, { passive: true });
-    return () => {
-      document.removeEventListener('touchstart', handleTouchStartRecord);
-    };
-  }, []);
 
   return (
     <PlayerProvider>
       <SidebarProvider>
-        <div className="min-h-screen flex w-full fixed overflow-hidden">
+        <div className={`min-h-screen flex w-full ${isMobile ? 'flex-col' : ''} overflow-hidden`}>
           {!isMobile && <AppSidebar />}
-          <main className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto">
+          <main className={`flex-1 flex flex-col ${isMobile ? 'h-screen' : ''} overflow-hidden`}>
+            <div className={`flex-1 ${isMobile ? 'overflow-y-auto scroll-smooth' : 'overflow-y-auto'}`} 
+                 style={isMobile ? { WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' } : {}}>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<AuthPage />} />

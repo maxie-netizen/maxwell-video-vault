@@ -60,7 +60,7 @@ export default function VideoCard({ video }: VideoCardProps) {
   };
 
   return (
-    <div className="bg-card shadow-lg rounded-2xl mb-4 overflow-hidden border border-border animate-fade-in w-full max-w-full relative z-10">
+    <div className="video-card bg-card shadow-lg rounded-2xl mb-4 overflow-hidden border border-border animate-fade-in w-full max-w-full relative z-10">
       <img src={snippet.thumbnails.high.url} alt={snippet.title} className="w-full h-48 object-cover" />
       <div className="p-4 flex flex-col gap-2">
         <div className="font-semibold text-base text-foreground mb-1 line-clamp-2">{snippet.title}</div>

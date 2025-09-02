@@ -191,7 +191,7 @@ const Index = () => {
                     </span>
                   </div>
                   
-                  <div className="grid gap-6 mx-2 md:mx-0 mb-8">
+                  <div className="video-grid grid gap-6 mx-2 md:mx-0 mb-8">
                     {results.map((video) => (
                       <VideoCard key={video.id.videoId || video.id} video={video} />
                     ))}
