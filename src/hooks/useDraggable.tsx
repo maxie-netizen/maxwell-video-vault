@@ -55,8 +55,49 @@ export function useDraggable({
       setPosition({ x: newX, y: newY });
     };
 
+    const snapToCorner = () => {
+      if (!elementRef.current) return;
+      
+      const elementRect = elementRef.current.getBoundingClientRect();
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      // Get current center position
+      const centerX = position.x + elementRect.width / 2;
+      const centerY = position.y + elementRect.height / 2;
+      
+      // Determine which corner is closest
+      const isLeft = centerX < windowWidth / 2;
+      const isTop = centerY < windowHeight / 2;
+      
+      const padding = 16;
+      let newX, newY;
+      
+      if (isLeft && isTop) {
+        // Top-left corner
+        newX = padding;
+        newY = padding;
+      } else if (!isLeft && isTop) {
+        // Top-right corner
+        newX = windowWidth - elementRect.width - padding;
+        newY = padding;
+      } else if (isLeft && !isTop) {
+        // Bottom-left corner
+        newX = padding;
+        newY = windowHeight - elementRect.height - padding;
+      } else {
+        // Bottom-right corner
+        newX = windowWidth - elementRect.width - padding;
+        newY = windowHeight - elementRect.height - padding;
+      }
+      
+      setPosition({ x: newX, y: newY });
+    };
+
     const handleEnd = () => {
       setIsDragging(false);
+      // Snap to nearest corner after dragging ends
+      setTimeout(snapToCorner, 100);
     };
 
     if (isDragging) {

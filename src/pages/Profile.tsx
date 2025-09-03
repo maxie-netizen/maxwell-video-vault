@@ -82,6 +82,10 @@ const Profile = () => {
         .eq("id", user.id);
 
       if (updateError) throw updateError;
+      
+      // Force refresh auth context to update avatar
+      window.location.reload();
+      
       toast.success("Avatar updated successfully!");
     } catch (error) {
       console.error("Error uploading avatar:", error);

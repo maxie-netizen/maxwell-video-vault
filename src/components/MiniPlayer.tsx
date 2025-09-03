@@ -30,9 +30,10 @@ export default function MiniPlayer() {
     if (iframeRef.current && currentVideo) {
       const iframe = iframeRef.current;
       const autoplay = isPlaying ? '1' : '0';
-      iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?autoplay=${autoplay}&enablejsapi=1`;
+      const currentTime = Math.floor(Date.now() / 1000); // Add timestamp to force reload
+      iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?autoplay=${autoplay}&enablejsapi=1&t=${currentTime}`;
     }
-  }, [currentVideo, isPlaying]);
+  }, [currentVideo, isPlaying, isMinimized]);
 
   const handlePictureInPicture = async () => {
     if (iframeRef.current) {
@@ -119,8 +120,10 @@ export default function MiniPlayer() {
         left: position.x, 
         top: position.y, 
         maxHeight: isMobile ? '180px' : '240px',
-        transition: isDragging ? 'none' : 'all 0.2s ease'
+        transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
       }}
+      onMouseDown={startDrag}
+      onTouchStart={startDrag}
     >
       <div className="aspect-video bg-black rounded-t-lg overflow-hidden">
         <iframe
@@ -143,17 +146,13 @@ export default function MiniPlayer() {
       </div>
       <div className={`p-2 bg-card rounded-b-lg ${isMobile ? 'p-2' : 'p-3'}`}>
         <div className="flex items-center justify-between">
-          <div 
-            className="flex-1 min-w-0 cursor-grab active:cursor-grabbing"
-            onMouseDown={startDrag}
-            onTouchStart={startDrag}
-          >
+          <div className="flex-1 min-w-0">
             <p className={`font-medium text-foreground truncate ${isMobile ? 'text-xs' : 'text-sm'}`}>
               {currentVideo.title}
             </p>
             <div className="flex items-center gap-1 mt-1">
               <Move className="h-2 w-2 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Drag</span>
+              <span className="text-xs text-muted-foreground">Drag anywhere</span>
             </div>
           </div>
           <div className="flex items-center gap-1 ml-2">

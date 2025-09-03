@@ -14,12 +14,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user?.id) {
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single()
-          .then(({ data }) => setProfile(data));
+        // Fetch fresh profile data on auth state change
+        setTimeout(() => {
+          supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .single()
+            .then(({ data }) => {
+              setProfile(data);
+              console.log('Profile loaded:', data);
+            });
+        }, 0);
       } else {
         setProfile(null);
       }
@@ -33,7 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .select("*")
           .eq("id", data.session.user.id)
           .single()
-          .then(({ data }) => setProfile(data));
+          .then(({ data }) => {
+            setProfile(data);
+            console.log('Initial profile loaded:', data);
+          });
       } else {
         setProfile(null);
       }
