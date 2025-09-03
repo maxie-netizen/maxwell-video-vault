@@ -51,13 +51,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const refreshProfile = async () => {
+    if (user?.id) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      setProfile(data);
+    }
+  };
+
   async function logout() {
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
   }
 
-  return <AuthContext.Provider value={{ user, loading, logout, profile }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, logout, profile, refreshProfile }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

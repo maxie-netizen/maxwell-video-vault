@@ -1,22 +1,26 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Play, Pause, X, Maximize2, PictureInPicture2, Move } from 'lucide-react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDraggable } from '@/hooks/useDraggable';
 import { useAuth } from '@/hooks/useAuth';
+import { useVideoHistory } from '@/contexts/VideoHistoryContext';
 
 export default function MiniPlayer() {
   const { playerState, closePlayer, maximizePlayer, pausePlayer, resumePlayer, handleVideoEnd } = usePlayer();
   const { currentVideo, isMinimized, showPlayer, isPlaying } = playerState;
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const isMobile = useIsMobile();
   const { profile } = useAuth() || {};
+  const { updateVideoProgress, getVideoProgress } = useVideoHistory();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [hasStartedTracking, setHasStartedTracking] = useState(false);
+  const isMobile = useIsMobile();
   
   const { position, elementRef, startDrag, isDragging } = useDraggable({
     initialPosition: { 
-      x: isMobile ? window.innerWidth - 320 - 16 : window.innerWidth - 320 - 16, 
-      y: isMobile ? window.innerHeight - 240 - 80 - 16 : window.innerHeight - 240 - 16 
+      x: window.innerWidth - 320 - 16, 
+      y: window.innerHeight - 240 - 16 
     },
     bounds: {
       left: 16,
@@ -26,14 +30,53 @@ export default function MiniPlayer() {
     }
   });
 
+  // Track video progress and update history
+  useEffect(() => {
+    if (currentVideo && !hasStartedTracking) {
+      setHasStartedTracking(true);
+      updateVideoProgress(
+        currentVideo.id,
+        currentVideo.title,
+        currentVideo.thumbnail,
+        currentVideo.channelTitle
+      );
+    }
+  }, [currentVideo, hasStartedTracking, updateVideoProgress]);
+
+  // Set up iframe src with proper parameters for seamless playback
   useEffect(() => {
     if (iframeRef.current && currentVideo) {
       const iframe = iframeRef.current;
-      const autoplay = isPlaying ? '1' : '0';
-      const currentTime = Math.floor(Date.now() / 1000); // Add timestamp to force reload
-      iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?autoplay=${autoplay}&enablejsapi=1&t=${currentTime}`;
+      const savedProgress = getVideoProgress(currentVideo.id);
+      const startTime = savedProgress > 10 ? savedProgress : 0; // Resume if more than 10 seconds watched
+      
+      const params = new URLSearchParams({
+        autoplay: isPlaying ? '1' : '0',
+        enablejsapi: '1',
+        rel: '0', // Don't show related videos
+        modestbranding: '1', // Minimal YouTube branding
+        start: startTime.toString()
+      });
+
+      iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
     }
-  }, [currentVideo, isPlaying, isMinimized]);
+  }, [currentVideo, getVideoProgress]);
+
+  // Update autoplay when play state changes (but keep same video)
+  useEffect(() => {
+    if (iframeRef.current && currentVideo && hasStartedTracking) {
+      const iframe = iframeRef.current;
+      const currentSrc = iframe.src;
+      
+      if (currentSrc.includes(currentVideo.id)) {
+        // Update only the autoplay parameter
+        const newSrc = currentSrc.replace(/autoplay=[01]/, `autoplay=${isPlaying ? '1' : '0'}`);
+        if (newSrc !== currentSrc) {
+          iframe.src = newSrc;
+        }
+      }
+    }
+  }, [isPlaying, currentVideo, hasStartedTracking]);
 
   const handlePictureInPicture = async () => {
     if (iframeRef.current) {

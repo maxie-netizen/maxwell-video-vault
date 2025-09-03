@@ -6,18 +6,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
-  const { profile } = useAuth() || {};
+  const { user, profile } = useAuth() || {};
   const [vote, setVote] = useState<number | null>(null);
   const [counts, setCounts] = useState({ likes: 0, dislikes: 0 });
 
   // Fetch vote status and counts
   useEffect(() => {
     async function fetchVoteStatus() {
-      if (!profile?.id || !videoId) return;
+      if (!user?.id || !videoId) return;
       const { data: userVote } = await supabase
         .from("video_votes")
         .select("vote")
-        .eq("user_id", profile.id)
+        .eq("user_id", user.id)
         .eq("video_id", videoId)
         .single();
 
@@ -32,10 +32,10 @@ export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
       setCounts({ likes, dislikes });
     }
     fetchVoteStatus();
-  }, [profile?.id, videoId]);
+  }, [user?.id, videoId]);
 
   async function handleVote(newVote: number) {
-    if (!profile?.id) {
+    if (!user?.id) {
       toast({ title: "Login required", description: "Please log in to vote", variant: "destructive" });
       return;
     }
@@ -49,7 +49,7 @@ export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
         const { error } = await supabase
           .from("video_votes")
           .delete()
-          .eq("user_id", profile.id)
+          .eq("user_id", user.id)
           .eq("video_id", videoId);
         
         if (error) throw error;
@@ -58,7 +58,7 @@ export default function LikeDislikeButtons({ videoId }: { videoId: string }) {
         const { error } = await supabase
           .from("video_votes")
           .upsert(
-            { user_id: profile.id, video_id: videoId, vote: finalVote },
+            { user_id: user.id, video_id: videoId, vote: finalVote },
             { onConflict: 'user_id,video_id' }
           );
         

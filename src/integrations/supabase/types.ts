@@ -141,6 +141,45 @@ export type Database = {
           },
         ]
       }
+      video_history: {
+        Row: {
+          channel_title: string | null
+          created_at: string
+          duration: number | null
+          id: string
+          last_watched_at: string
+          user_id: string
+          video_id: string
+          video_thumbnail: string | null
+          video_title: string
+          watch_progress: number | null
+        }
+        Insert: {
+          channel_title?: string | null
+          created_at?: string
+          duration?: number | null
+          id?: string
+          last_watched_at?: string
+          user_id: string
+          video_id: string
+          video_thumbnail?: string | null
+          video_title: string
+          watch_progress?: number | null
+        }
+        Update: {
+          channel_title?: string | null
+          created_at?: string
+          duration?: number | null
+          id?: string
+          last_watched_at?: string
+          user_id?: string
+          video_id?: string
+          video_thumbnail?: string | null
+          video_title?: string
+          watch_progress?: number | null
+        }
+        Relationships: []
+      }
       video_votes: {
         Row: {
           id: string
@@ -178,7 +217,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_username_availability: {
+        Args: { username_to_check: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

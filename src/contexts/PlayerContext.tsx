@@ -1,19 +1,22 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+interface Video {
+  id: string;
+  title: string;
+  thumbnail: string;
+  channelTitle?: string;
+}
+
 interface PlayerState {
   isPlaying: boolean;
-  currentVideo: {
-    id: string;
-    title: string;
-    thumbnail: string;
-  } | null;
+  currentVideo: Video | null;
   isMinimized: boolean;
   showPlayer: boolean;
 }
 
 interface PlayerContextType {
   playerState: PlayerState;
-  playVideo: (video: { id: string; title: string; thumbnail: string }) => void;
+  playVideo: (video: Video) => void;
   minimizePlayer: () => void;
   maximizePlayer: () => void;
   closePlayer: () => void;
@@ -32,7 +35,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     showPlayer: false,
   });
 
-  const playVideo = (video: { id: string; title: string; thumbnail: string }) => {
+  const playVideo = (video: Video) => {
     setPlayerState({
       isPlaying: true,
       currentVideo: video,

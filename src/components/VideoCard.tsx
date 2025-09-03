@@ -55,8 +55,8 @@ export default function VideoCard({ video }: VideoCardProps) {
       id: id.videoId,
       title: snippet.title,
       thumbnail: snippet.thumbnails.high.url,
+      channelTitle: snippet.channelTitle,
     });
-    minimizePlayer();
   };
 
   return (

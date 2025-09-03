@@ -8,11 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Upload, User } from "lucide-react";
+import { Upload, User, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { useUsernameValidation } from "@/hooks/useUsernameValidation";
+import RecentVideos from "@/components/RecentVideos";
 
 const Profile = () => {
-  const { user, profile, logout } = useAuth() || {};
+  const { user, profile, logout, refreshProfile } = useAuth() || {};
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,6 +23,11 @@ const Profile = () => {
     bio: "",
     auto_hide_player: true
   });
+
+  const { isValid: isUsernameValid, message: usernameMessage, color: usernameColor, isChecking } = useUsernameValidation(
+    formData.username, 
+    profile?.username
+  );
 
   useEffect(() => {
     if (profile) {
@@ -35,6 +43,12 @@ const Profile = () => {
     e.preventDefault();
     if (!user) return;
 
+    // Validate username before updating
+    if (formData.username && formData.username !== profile?.username && !isUsernameValid) {
+      toast.error("Please choose a valid username");
+      return;
+    }
+
     setUpdating(true);
     try {
       const { error } = await supabase
@@ -47,10 +61,20 @@ const Profile = () => {
         .eq("id", user.id);
 
       if (error) throw error;
+      
+      // Refresh profile to get updated data
+      if (refreshProfile) {
+        await refreshProfile();
+      }
+      
       toast.success("Profile updated successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+      if (error.code === '23505') {
+        toast.error("Username is already taken");
+      } else {
+        toast.error("Failed to update profile");
+      }
     } finally {
       setUpdating(false);
     }
@@ -60,11 +84,23 @@ const Profile = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please select an image file");
+      return;
+    }
+
     setLoading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = fileName;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -83,8 +119,10 @@ const Profile = () => {
 
       if (updateError) throw updateError;
       
-      // Force refresh auth context to update avatar
-      window.location.reload();
+      // Refresh profile to show new avatar
+      if (refreshProfile) {
+        await refreshProfile();
+      }
       
       toast.success("Avatar updated successfully!");
     } catch (error) {
@@ -115,6 +153,9 @@ const Profile = () => {
           <CardDescription>Manage your account settings and preferences</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Recent Videos Section */}
+          <RecentVideos />
+          
           {/* Avatar Section */}
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
@@ -125,9 +166,11 @@ const Profile = () => {
             </Avatar>
             <div>
               <Label htmlFor="avatar" className="cursor-pointer">
-                <Button variant="outline" size="sm" disabled={loading}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  {loading ? "Uploading..." : "Change Avatar"}
+                <Button variant="outline" size="sm" disabled={loading} asChild>
+                  <div>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {loading ? "Uploading..." : "Change Avatar"}
+                  </div>
                 </Button>
               </Label>
               <Input
@@ -155,12 +198,32 @@ const Profile = () => {
 
             <div>
               <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="Enter your username"
-              />
+              <div className="space-y-2">
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="Enter your username (minimum 4 characters)"
+                />
+                {usernameMessage && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {isChecking ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : usernameColor === 'success' ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : usernameColor === 'destructive' ? (
+                      <XCircle className="h-4 w-4 text-red-600" />
+                    ) : null}
+                    <span className={
+                      usernameColor === 'success' ? 'text-green-600' :
+                      usernameColor === 'destructive' ? 'text-red-600' :
+                      'text-muted-foreground'
+                    }>
+                      {usernameMessage}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>
