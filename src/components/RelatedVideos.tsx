@@ -11,9 +11,25 @@ interface RelatedVideosProps {
 export default function RelatedVideos({ currentVideoTitle }: RelatedVideosProps) {
   const [relatedVideos, setRelatedVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const { playVideo } = usePlayer();
+  const { playVideo, playerState } = usePlayer();
 
   useEffect(() => {
+    // Use related videos from PlayerContext if available
+    if (playerState.relatedVideos.length > 0) {
+      setRelatedVideos(playerState.relatedVideos.map(video => ({
+        id: { videoId: video.id },
+        snippet: {
+          title: video.title,
+          channelTitle: video.channelTitle,
+          thumbnails: {
+            medium: { url: video.thumbnail },
+            high: { url: video.thumbnail }
+          }
+        }
+      })));
+      return;
+    }
+
     const fetchRelatedVideos = async () => {
       if (!currentVideoTitle) return;
       
@@ -38,7 +54,7 @@ export default function RelatedVideos({ currentVideoTitle }: RelatedVideosProps)
     };
 
     fetchRelatedVideos();
-  }, [currentVideoTitle]);
+  }, [currentVideoTitle, playerState.relatedVideos]);
 
   const handleVideoClick = (video: any) => {
     playVideo({
