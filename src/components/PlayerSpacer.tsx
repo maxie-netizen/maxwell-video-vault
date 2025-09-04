@@ -1,0 +1,12 @@
+import React from 'react';
+import { usePlayer } from '@/contexts/PlayerContext';
+
+export default function PlayerSpacer() {
+  const { playerState } = usePlayer();
+  const { showPlayer, isMinimized } = playerState;
+
+  // Only show spacer when player is active and not minimized
+  if (!showPlayer || isMinimized) return null;
+
+  return <div className="h-[400px] lg:h-[500px] xl:h-[550px]" />;
+}

@@ -6,9 +6,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useDraggable } from '@/hooks/useDraggable';
 import { useAuth } from '@/hooks/useAuth';
 import { useVideoHistory } from '@/contexts/VideoHistoryContext';
+import RelatedVideos from './RelatedVideos';
 
 export default function MiniPlayer() {
-  const { playerState, closePlayer, maximizePlayer, pausePlayer, resumePlayer, handleVideoEnd } = usePlayer();
+  const { playerState, closePlayer, maximizePlayer, minimizePlayer, pausePlayer, resumePlayer, handleVideoEnd } = usePlayer();
   const { currentVideo, isMinimized, showPlayer, isPlaying } = playerState;
   const { profile } = useAuth() || {};
   const { updateVideoProgress, getVideoProgress } = useVideoHistory();
@@ -94,60 +95,71 @@ export default function MiniPlayer() {
   if (!showPlayer || !currentVideo) return null;
 
   if (!isMinimized) {
-    // Full player overlay
+    // YouTube-like main player - takes up upper portion, scrollable content below
     return (
-      <div className="fixed inset-0 z-50 bg-background">
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="text-lg font-semibold text-foreground truncate flex-1 mr-4">
-              {currentVideo.title}
-            </h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={maximizePlayer}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handlePictureInPicture}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <PictureInPicture2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closePlayer}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div className="flex-1">
-            <iframe
-              ref={iframeRef}
-              className="w-full h-full"
-              allow="autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-              title="YouTube Video Player"
-              onLoad={() => {
-                // Listen for video end event
-                if (iframeRef.current) {
-                  iframeRef.current.addEventListener('ended', () => {
-                    handleVideoEnd();
-                    if (profile?.auto_hide_player !== false) {
-                      setTimeout(() => closePlayer(), 1000);
+      <div className="fixed top-0 left-0 right-0 z-40 bg-background border-b border-border shadow-lg">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row">
+            {/* Video Player Section */}
+            <div className="lg:w-2/3 xl:w-3/4">
+              <div className="aspect-video bg-black">
+                <iframe
+                  ref={iframeRef}
+                  className="w-full h-full"
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  title="YouTube Video Player"
+                  onLoad={() => {
+                    // Listen for video end event
+                    if (iframeRef.current) {
+                      iframeRef.current.addEventListener('ended', () => {
+                        handleVideoEnd();
+                        if (profile?.auto_hide_player !== false) {
+                          setTimeout(() => closePlayer(), 1000);
+                        }
+                      });
                     }
-                  });
-                }
-              }}
-            />
+                  }}
+                />
+              </div>
+              
+              {/* Video Info */}
+              <div className="p-4">
+                <h1 className="text-lg font-semibold text-foreground line-clamp-2 mb-2">
+                  {currentVideo.title}
+                </h1>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    {currentVideo.channelTitle}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={minimizePlayer}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <PictureInPicture2 className="h-4 w-4 mr-1" />
+                      Mini Player
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={closePlayer}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Sidebar for related videos - shown on larger screens */}
+            <div className="lg:w-1/3 xl:w-1/4 border-l border-border bg-muted/30 p-4 max-h-[600px] overflow-y-auto hidden lg:block">
+              <h3 className="font-medium text-foreground mb-3">Up next</h3>
+              <RelatedVideos currentVideoTitle={currentVideo.title} />
+            </div>
           </div>
         </div>
       </div>
