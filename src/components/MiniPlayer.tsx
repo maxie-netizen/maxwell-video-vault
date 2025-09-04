@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useDraggable } from '@/hooks/useDraggable';
 import { useAuth } from '@/hooks/useAuth';
 import { useVideoHistory } from '@/contexts/VideoHistoryContext';
+import { useLocation } from 'react-router-dom';
 import RelatedVideos from './RelatedVideos';
 
 export default function MiniPlayer() {
@@ -13,9 +14,11 @@ export default function MiniPlayer() {
   const { currentVideo, isMinimized, showPlayer, isPlaying } = playerState;
   const { profile } = useAuth() || {};
   const { updateVideoProgress, getVideoProgress } = useVideoHistory();
+  const location = useLocation();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [hasStartedTracking, setHasStartedTracking] = useState(false);
+  const [currentVideoTime, setCurrentVideoTime] = useState(0);
   const isMobile = useIsMobile();
   
   const { position, elementRef, startDrag, isDragging } = useDraggable({
@@ -49,7 +52,7 @@ export default function MiniPlayer() {
     if (iframeRef.current && currentVideo) {
       const iframe = iframeRef.current;
       const savedProgress = getVideoProgress(currentVideo.id);
-      const startTime = savedProgress > 10 ? savedProgress : 0; // Resume if more than 10 seconds watched
+      const startTime = Math.max(savedProgress, currentVideoTime);
       
       const params = new URLSearchParams({
         autoplay: isPlaying ? '1' : '0',
@@ -61,7 +64,7 @@ export default function MiniPlayer() {
 
       iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
     }
-  }, [currentVideo, getVideoProgress]);
+  }, [currentVideo, getVideoProgress, currentVideoTime]);
 
   // Update autoplay when play state changes (but keep same video)
   useEffect(() => {
@@ -70,14 +73,19 @@ export default function MiniPlayer() {
       const currentSrc = iframe.src;
       
       if (currentSrc.includes(currentVideo.id)) {
-        // Update only the autoplay parameter
-        const newSrc = currentSrc.replace(/autoplay=[01]/, `autoplay=${isPlaying ? '1' : '0'}`);
+        // Update only the autoplay parameter and maintain current time
+        const urlObj = new URL(currentSrc);
+        urlObj.searchParams.set('autoplay', isPlaying ? '1' : '0');
+        if (currentVideoTime > 0) {
+          urlObj.searchParams.set('start', Math.floor(currentVideoTime).toString());
+        }
+        const newSrc = urlObj.toString();
         if (newSrc !== currentSrc) {
           iframe.src = newSrc;
         }
       }
     }
-  }, [isPlaying, currentVideo, hasStartedTracking]);
+  }, [isPlaying, currentVideo, hasStartedTracking, currentVideoTime]);
 
   const handlePictureInPicture = async () => {
     if (iframeRef.current) {
@@ -92,17 +100,18 @@ export default function MiniPlayer() {
     }
   };
 
-  if (!showPlayer || !currentVideo) return null;
+  // Hide player when not on home page
+  if (!showPlayer || !currentVideo || location.pathname !== '/') return null;
 
   if (!isMinimized) {
-    // YouTube-like main player - takes up upper portion, scrollable content below
+    // YouTube-like main player - smaller size, upper portion only
     return (
       <div className="fixed top-0 left-0 right-0 z-40 bg-background border-b border-border shadow-lg">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-5xl mx-auto px-4">
           <div className="flex flex-col lg:flex-row">
-            {/* Video Player Section */}
-            <div className="lg:w-2/3 xl:w-3/4">
-              <div className="aspect-video bg-black">
+            {/* Video Player Section - Reduced size */}
+            <div className="lg:w-2/3 xl:w-3/4 max-w-3xl">
+              <div className="aspect-video bg-black" style={{ maxHeight: isMobile ? '250px' : '400px' }}>
                 <iframe
                   ref={iframeRef}
                   className="w-full h-full"
@@ -156,7 +165,7 @@ export default function MiniPlayer() {
             </div>
             
             {/* Sidebar for related videos - shown on larger screens */}
-            <div className="lg:w-1/3 xl:w-1/4 border-l border-border bg-muted/30 p-4 max-h-[600px] overflow-y-auto hidden lg:block">
+            <div className="lg:w-1/3 xl:w-1/4 border-l border-border bg-muted/30 p-4 max-h-[400px] overflow-y-auto hidden lg:block">
               <h3 className="font-medium text-foreground mb-3">Up next</h3>
               <RelatedVideos currentVideoTitle={currentVideo.title} />
             </div>
