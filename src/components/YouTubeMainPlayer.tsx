@@ -98,14 +98,15 @@ export default function YouTubeMainPlayer() {
       setBuffering(true);
       
       const params = new URLSearchParams({
-        autoplay: isPlaying ? '1' : '0',
+        autoplay: '1',
         enablejsapi: '1',
         rel: '0',
         modestbranding: '1',
-        start: savedProgress.toString(),
+        start: Math.floor(savedProgress).toString(),
         controls: '1',
         showinfo: '0',
-        iv_load_policy: '3'
+        iv_load_policy: '3',
+        origin: window.location.origin
       });
 
       const videoUrl = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
@@ -204,16 +205,17 @@ export default function YouTubeMainPlayer() {
     alert('Picture-in-Picture is supported! contact devmaxwell for further support.');
   };
 
-  // Hide player when not on home page or when minimized
-  if (!showPlayer || !currentVideo || location.pathname !== '/' || isMinimized) return null;
+  // Only show main player when on home page, player is active, not minimized, and video exists
+  if (!showPlayer || !currentVideo || isMinimized || location.pathname !== '/') return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 bg-background border-b border-border shadow-lg">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-background border-b border-border shadow-lg"
+         style={{ height: isMobile ? '350px' : '600px' }}>
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col lg:flex-row">
           {/* Video Player Section */}
           <div className="lg:w-2/3 xl:w-3/4 max-w-5xl">
-            <div className="aspect-video bg-black relative" style={{ maxHeight: isMobile ? '250px' : '500px' }}>
+            <div className="aspect-video bg-black relative" style={{ height: isMobile ? '200px' : '400px' }}>
               <iframe
                 ref={iframeRef}
                 className="w-full h-full"

@@ -70,14 +70,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       
       const response = await searchYouTube(searchTerms);
       const relatedVideos = response.items
-        .slice(0, 10)
-        .map((item: any) => ({
-          id: item.id.videoId,
-          title: item.snippet.title,
-          thumbnail: item.snippet.thumbnails.high.url,
-          channelTitle: item.snippet.channelTitle,
-        }))
-        .filter((relatedVideo: Video) => relatedVideo.id !== video.id); // Don't include current video
+        ? response.items
+            .slice(0, 10)
+            .map((item: any) => ({
+              id: item.id.videoId,
+              title: item.snippet.title,
+              thumbnail: item.snippet.thumbnails.high.url,
+              channelTitle: item.snippet.channelTitle,
+            }))
+            .filter((relatedVideo: Video) => relatedVideo.id !== video.id)
+        : [];
 
       setPlayerState(prev => ({ ...prev, relatedVideos }));
     } catch (error) {
