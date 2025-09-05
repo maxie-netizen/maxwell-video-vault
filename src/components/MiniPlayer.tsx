@@ -122,7 +122,7 @@ export default function MiniPlayer() {
   }, []);
 
   // Only show mini player when on home page, player is active, minimized, and video exists
-  if (!showPlayer || !currentVideo || !isMinimized || location.pathname !== '/') return null;
+  if (!showPlayer || !currentVideo || !isMinimized || location.pathname !== '/' || isDragging) return null;
 
   // Mini player - YouTube-like with expandable content
   return (
@@ -130,13 +130,15 @@ export default function MiniPlayer() {
       ref={elementRef}
       className={`fixed z-40 bg-card border border-border rounded-lg shadow-lg transition-all duration-300 ${
         isMobile ? 'w-80 max-w-[90vw]' : 'w-96 max-w-[90vw]'
-      } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${
+      } ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'} ${
         isExpanded ? 'h-[600px]' : 'h-auto'
       }`}
       style={{ 
         left: position.x, 
         top: position.y, 
-        transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        userSelect: isDragging ? 'none' : 'auto',
+        pointerEvents: 'auto'
       }}
       onMouseDown={startDrag}
       onTouchStart={startDrag}
