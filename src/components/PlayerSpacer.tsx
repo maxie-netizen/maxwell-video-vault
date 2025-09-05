@@ -8,5 +8,5 @@ export default function PlayerSpacer() {
   // Only show spacer when player is active and not minimized
   if (!showPlayer || isMinimized) return null;
 
-  return <div className="h-[250px] md:h-[350px] lg:h-[400px]" />;
+  return <div className="h-[400px] md:h-[500px] lg:h-[600px]" />;
 }

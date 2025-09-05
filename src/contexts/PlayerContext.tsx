@@ -14,6 +14,9 @@ interface PlayerState {
   isMinimized: boolean;
   showPlayer: boolean;
   relatedVideos: Video[];
+  currentTime: number;
+  duration: number;
+  isBuffering: boolean;
 }
 
 interface PlayerContextType {
@@ -25,6 +28,9 @@ interface PlayerContextType {
   pausePlayer: () => void;
   resumePlayer: () => void;
   handleVideoEnd: () => void;
+  updateCurrentTime: (time: number) => void;
+  updateDuration: (duration: number) => void;
+  setBuffering: (buffering: boolean) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -36,16 +42,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     isMinimized: false,
     showPlayer: false,
     relatedVideos: [],
+    currentTime: 0,
+    duration: 0,
+    isBuffering: false,
   });
 
   const playVideo = async (video: Video) => {
-    setPlayerState({
+    setPlayerState(prev => ({
+      ...prev,
       isPlaying: true,
       currentVideo: video,
       isMinimized: false,
       showPlayer: true,
-      relatedVideos: [],
-    });
+      currentTime: 0,
+      duration: 0,
+      isBuffering: false,
+    }));
 
     // Fetch related videos for auto-play
     try {
@@ -88,6 +100,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       isMinimized: false,
       showPlayer: false,
       relatedVideos: [],
+      currentTime: 0,
+      duration: 0,
+      isBuffering: false,
     });
   };
 
@@ -111,6 +126,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setPlayerState(prev => ({ ...prev, isPlaying: true }));
   };
 
+  const updateCurrentTime = (time: number) => {
+    setPlayerState(prev => ({ ...prev, currentTime: time }));
+  };
+
+  const updateDuration = (duration: number) => {
+    setPlayerState(prev => ({ ...prev, duration }));
+  };
+
+  const setBuffering = (buffering: boolean) => {
+    setPlayerState(prev => ({ ...prev, isBuffering: buffering }));
+  };
+
   return (
     <PlayerContext.Provider
       value={{
@@ -122,6 +149,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         pausePlayer,
         resumePlayer,
         handleVideoEnd,
+        updateCurrentTime,
+        updateDuration,
+        setBuffering,
       }}
     >
       {children}

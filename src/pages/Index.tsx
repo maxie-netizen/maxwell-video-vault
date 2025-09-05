@@ -12,6 +12,8 @@ import { VideoCache } from "@/lib/videoCache";
 import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import PlayerSpacer from "@/components/PlayerSpacer";
+import YouTubeMainPlayer from "@/components/YouTubeMainPlayer";
+import MiniPlayer from "@/components/MiniPlayer";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
@@ -144,8 +146,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex flex-col">
       <Header />
+      <YouTubeMainPlayer />
       <PlayerSpacer />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 pb-32 md:pb-6 overflow-x-hidden relative z-10">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 pb-32 md:pb-6 overflow-x-hidden relative z-10 min-h-screen">
         <div className="sticky top-2 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 rounded-lg mb-6">
           <SearchBar onSearch={handleSearch} loading={loading} />
         </div>
@@ -251,6 +254,9 @@ const Index = () => {
         <FooterReview />
         <DeveloperAttribution />
       </div>
+      
+      {/* Mini Player */}
+      <MiniPlayer />
     </div>
   );
 };

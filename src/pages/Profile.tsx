@@ -18,6 +18,7 @@ const Profile = () => {
   const { user, profile, logout, refreshProfile } = useAuth() || {};
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     username: "",
     bio: "",
@@ -84,9 +85,9 @@ const Profile = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB");
+    // Validate file size (max 1MB for base64 efficiency)
+    if (file.size > 1 * 1024 * 1024) {
+      toast.error("File size must be less than 1MB for best performance");
       return;
     }
 
@@ -96,38 +97,91 @@ const Profile = () => {
       return;
     }
 
+    // Create preview URL
+    const preview = URL.createObjectURL(file);
+    setPreviewUrl(preview);
+
     setLoading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = fileName;
+      // Convert image to base64 (reliable method)
+      const convertToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = error => reject(error);
+        });
+      };
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
+      console.log('Converting image to base64...');
+      const base64Data = await convertToBase64(file);
+      
+      console.log('Updating profile with base64 avatar...');
+      
+      // Try direct update first
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ avatar_url: data.publicUrl })
+        .update({ avatar_url: base64Data })
         .eq("id", user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        
+        // If RLS error, try using RPC function
+        if (updateError.message?.includes('recursion') || updateError.message?.includes('policy') || updateError.message?.includes('RLS')) {
+          console.log('RLS error detected, trying RPC function...');
+          
+          // Try using the RPC function as fallback
+          const { error: rpcError } = await supabase.rpc('update_user_avatar_simple', {
+            user_id: user.id,
+            avatar_data: base64Data
+          });
+          
+          if (rpcError) {
+            console.error('RPC error:', rpcError);
+            throw new Error('Unable to update avatar. Please try again later.');
+          }
+          
+          console.log('Avatar updated successfully via RPC function');
+        } else {
+          throw updateError;
+        }
+      } else {
+        console.log('Avatar updated successfully via direct update');
+      }
+      
+      console.log('Profile updated successfully');
       
       // Refresh profile to show new avatar
       if (refreshProfile) {
         await refreshProfile();
       }
       
+      // Clean up preview URL
+      URL.revokeObjectURL(preview);
+      setPreviewUrl(null);
+      
       toast.success("Avatar updated successfully!");
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error("Error uploading avatar:", error);
-      toast.error("Failed to upload avatar");
+      
+      // Clean up preview URL on error
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+      
+      // Provide more specific error messages
+      if (error.message?.includes('permission')) {
+        toast.error("Permission denied. Please contact support.");
+      } else if (error.message?.includes('size')) {
+        toast.error("File too large. Please choose a smaller image.");
+      } else if (error.message?.includes('network')) {
+        toast.error("Network error. Please check your connection and try again.");
+      } else {
+        toast.error(`Failed to upload avatar: ${error.message || 'Unknown error'}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -159,7 +213,7 @@ const Profile = () => {
           {/* Avatar Section */}
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={profile?.avatar_url || ""} />
+              <AvatarImage src={previewUrl || profile?.avatar_url || ""} />
               <AvatarFallback>
                 <User className="h-8 w-8" />
               </AvatarFallback>
