@@ -86,17 +86,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       
       const response = await searchYouTube(searchTerms);
       const relatedVideos = response.items
-<<<<<<< HEAD
-        .slice(0, 10)
-        .map((item: any) => ({
-          id: item.id.videoId,
-          title: item.snippet.title,
-          thumbnail: item.snippet.thumbnails.high.url,
-          channelTitle: item.snippet.channelTitle,
-          publishedAt: item.snippet.publishedAt,
-        }))
-        .filter((relatedVideo: Video) => relatedVideo.id !== video.id);
-=======
         ? response.items
             .slice(0, 10)
             .map((item: any) => ({
@@ -104,10 +93,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
               title: item.snippet.title,
               thumbnail: item.snippet.thumbnails.high.url,
               channelTitle: item.snippet.channelTitle,
+              publishedAt: item.snippet.publishedAt,
             }))
             .filter((relatedVideo: Video) => relatedVideo.id !== video.id)
         : [];
->>>>>>> 8eaf53f82631743e50128b6c64223925c7a01fe8
 
       setPlayerState(prev => ({ ...prev, relatedVideos }));
     } catch (error) {
@@ -218,10 +207,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const usePlayer = () => {
+export function usePlayer() {
   const context = useContext(PlayerContext);
   if (context === undefined) {
     throw new Error('usePlayer must be used within a PlayerProvider');
   }
   return context;
-};
+}
