@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import BottomNavigation from "@/components/BottomNavigation";
 import MiniPlayer from "@/components/MiniPlayer";
+import YouTubePlayer from "@/components/YouTubePlayer";
 import { PlayerProvider } from "@/contexts/PlayerContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index";
@@ -116,6 +117,7 @@ function AppContent() {
           </main>
         </div>
         {isMobile && <BottomNavigation />}
+        <YouTubePlayer />
         <MiniPlayer />
       </SidebarProvider>
     </PlayerProvider>

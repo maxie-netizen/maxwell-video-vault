@@ -1,15 +1,34 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Play, Pause, X, Maximize2, PictureInPicture2, Move, ChevronUp, ChevronDown } from 'lucide-react';
-import { usePlayer } from '@/contexts/PlayerContext';
+import { 
+  Play, 
+  Pause, 
+  X, 
+  Maximize2, 
+  Volume2, 
+  VolumeX,
+  Move,
+  ChevronUp, 
+  ChevronDown,
+  SkipBack,
+  SkipForward
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Slider } from '@/components/ui/slider';
+import { usePlayer } from '@/contexts/PlayerContext';
 import { useDraggable } from '@/hooks/useDraggable';
 import { useAuth } from '@/hooks/useAuth';
 import { useVideoHistory } from '@/contexts/VideoHistoryContext';
 import { useLocation } from 'react-router-dom';
-import RelatedVideos from './RelatedVideos';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// import { useYouTubePlayer } from '@/hooks/useYouTubePlayer';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+
+interface Video {
+  id: string;
+  title: string;
+  thumbnail: string;
+  channelTitle?: string;
+}
 
 export default function MiniPlayer() {
   const { 
@@ -18,26 +37,29 @@ export default function MiniPlayer() {
     maximizePlayer, 
     minimizePlayer, 
     pausePlayer, 
-    resumePlayer, 
-    handleVideoEnd,
-    updateCurrentTime,
-    updateDuration,
-    setBuffering
+    resumePlayer,
+    playVideo
   } = usePlayer();
+  
   const { currentVideo, isMinimized, showPlayer, isPlaying, currentTime, duration, isBuffering } = playerState;
   const { profile } = useAuth() || {};
   const { updateVideoProgress, getVideoProgress } = useVideoHistory();
   const location = useLocation();
+  
   const [hasStartedTracking, setHasStartedTracking] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
-  const isMobile = useIsMobile();
+  const [volume, setVolume] = useState(100);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showControls, setShowControls] = useState(false);
+  const [relatedVideos, setRelatedVideos] = useState<Video[]>([]);
+  
   const iframeRef = useRef<HTMLIFrameElement>(null);
   
   const { position, elementRef, startDrag, isDragging } = useDraggable({
     initialPosition: { 
-      x: window.innerWidth - 320 - 16, 
-      y: window.innerHeight - 240 - 16 
+      x: window.innerWidth - 380 - 16, 
+      y: window.innerHeight - 280 - 16 
     },
     bounds: {
       left: 16,
@@ -76,7 +98,7 @@ export default function MiniPlayer() {
           duration
         );
       }
-    }, 5000); // Update every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [currentVideo, isPlaying, currentTime, duration, updateVideoProgress]);
@@ -95,42 +117,61 @@ export default function MiniPlayer() {
         start: savedProgress.toString(),
         controls: '1',
         showinfo: '0',
-        iv_load_policy: '3'
+        iv_load_policy: '3',
+        mute: isMuted ? '1' : '0'
       });
 
       iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
     }
-  }, [currentVideo, isPlaying, getVideoProgress]);
+  }, [currentVideo, isPlaying, getVideoProgress, isMuted]);
 
-  const handlePictureInPicture = async () => {
-    if (iframeRef.current) {
-      try {
-        // For Picture-in-Picture, we need to use the video element
-        // YouTube iframe doesn't support direct PiP, so we show a message
-        // In a real implementation, you'd need to use the YouTube Player API
-        alert('Picture-in-Picture is supported! contact devmaxwell for further support.');
-      } catch (error) {
-        console.error('PiP not supported:', error);
-      }
-    }
+  const handleSeek = (value: number[]) => {
+    const newTime = (value[0] / 100) * duration;
+    // Note: Direct seeking in YouTube iframe is limited
   };
 
-  const handleIframeLoad = useCallback(() => {
-    // YouTube Player API handles events automatically
-    console.log('YouTube player loaded');
-  }, []);
+  const handleVolumeChange = (value: number[]) => {
+    setVolume(value[0]);
+    setIsMuted(value[0] === 0);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const handleVideoClick = (video: Video) => {
+    playVideo(video);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+    if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`;
+    return `${Math.ceil(diffDays / 365)} years ago`;
+  };
 
   // Hide player when not on home page or when not minimized
   if (!showPlayer || !currentVideo || location.pathname !== '/' || !isMinimized) return null;
 
-  // Mini player - YouTube-like with expandable content
   return (
     <div 
       ref={elementRef}
-      className={`fixed z-40 bg-card border border-border rounded-lg shadow-lg transition-all duration-300 ${
-        isMobile ? 'w-80 max-w-[90vw]' : 'w-96 max-w-[90vw]'
-      } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${
-        isExpanded ? 'h-[600px]' : 'h-auto'
+      className={`fixed z-50 bg-card border border-border rounded-lg shadow-lg transition-all duration-300 ${
+        isDragging ? 'cursor-grabbing' : 'cursor-grab'
+      } ${
+        isExpanded ? 'w-96 h-[600px]' : 'w-80 h-auto'
       }`}
       style={{ 
         left: position.x, 
@@ -139,9 +180,11 @@ export default function MiniPlayer() {
       }}
       onMouseDown={startDrag}
       onTouchStart={startDrag}
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
     >
       {/* Video Player */}
-      <div className="aspect-video bg-black rounded-t-lg overflow-hidden relative">
+      <div className="aspect-video bg-black rounded-t-lg overflow-hidden relative group">
         <iframe
           ref={iframeRef}
           className="w-full h-full"
@@ -160,10 +203,81 @@ export default function MiniPlayer() {
           </div>
         )}
         
+        {/* Controls Overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 ${
+          showControls ? 'opacity-100' : 'opacity-0'
+        }`}>
+          {/* Center Play Button */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={isPlaying ? pausePlayer : resumePlayer}
+              className="text-white hover:bg-white/20 h-12 w-12 rounded-full"
+            >
+              {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+            </Button>
+          </div>
+
+          {/* Bottom Controls */}
+          <div className="absolute bottom-2 left-2 right-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={isPlaying ? pausePlayer : resumePlayer}
+                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                >
+                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleMute}
+                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                >
+                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </Button>
+                
+                <div className="w-16">
+                  <Slider
+                    value={[isMuted ? 0 : volume]}
+                    onValueChange={handleVolumeChange}
+                    max={100}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={maximizePlayer}
+                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closePlayer}
+                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* Buffering Indicator */}
         {isBuffering && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -172,39 +286,25 @@ export default function MiniPlayer() {
       <div className="p-3 bg-card">
         <div className="flex items-center justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <p className={`font-medium text-foreground truncate ${isMobile ? 'text-xs' : 'text-sm'}`}>
+            <p className="font-medium text-foreground truncate text-sm mb-1">
               {currentVideo.title}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {currentVideo.channelTitle}
-            </p>
+            <div className="flex items-center gap-2">
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={`https://ui-avatars.com/api/?name=${currentVideo.channelTitle}&background=random`} />
+                <AvatarFallback className="text-xs">{currentVideo.channelTitle?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <p className="text-xs text-muted-foreground truncate">
+                {currentVideo.channelTitle}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-1 ml-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={isPlaying ? pausePlayer : resumePlayer}
-              className={`p-1 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`}
-            >
-              {isPlaying ? <Pause className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} /> : <Play className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={maximizePlayer}
-              className={`p-1 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`}
-            >
-              <Maximize2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={closePlayer}
-              className={`p-1 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`}
-            >
-              <X className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-            </Button>
-          </div>
+        </div>
+        
+        {/* Time Display */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
         
         {/* Drag indicator and expand button */}
@@ -230,7 +330,40 @@ export default function MiniPlayer() {
           <div className="p-3">
             <h4 className="text-sm font-medium text-foreground mb-3">Up next</h4>
             <ScrollArea className="h-[300px]">
-              <RelatedVideos currentVideoTitle={currentVideo.title} />
+              <div className="space-y-2">
+                {relatedVideos.map((video) => (
+                  <div
+                    key={video.id}
+                    className="flex gap-2 cursor-pointer hover:bg-muted/50 rounded p-2 transition-colors group"
+                    onClick={() => handleVideoClick(video)}
+                  >
+                    <div className="relative w-20 flex-shrink-0">
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-full h-12 object-cover rounded"
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                        <Play className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="text-xs font-medium text-foreground line-clamp-2 leading-tight mb-1">
+                        {video.title}
+                      </h5>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {video.channelTitle}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                
+                {relatedVideos.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="text-sm">No related videos available</p>
+                  </div>
+                )}
+              </div>
             </ScrollArea>
           </div>
         </div>

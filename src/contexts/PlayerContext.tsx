@@ -6,6 +6,9 @@ interface Video {
   title: string;
   thumbnail: string;
   channelTitle?: string;
+  publishedAt?: string;
+  viewCount?: string;
+  description?: string;
 }
 
 interface PlayerState {
@@ -17,6 +20,10 @@ interface PlayerState {
   currentTime: number;
   duration: number;
   isBuffering: boolean;
+  volume: number;
+  isMuted: boolean;
+  playbackRate: number;
+  quality: string;
 }
 
 interface PlayerContextType {
@@ -31,6 +38,11 @@ interface PlayerContextType {
   updateCurrentTime: (time: number) => void;
   updateDuration: (duration: number) => void;
   setBuffering: (buffering: boolean) => void;
+  setVolume: (volume: number) => void;
+  setMuted: (muted: boolean) => void;
+  setPlaybackRate: (rate: number) => void;
+  setQuality: (quality: string) => void;
+  seekTo: (time: number) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -45,6 +57,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     currentTime: 0,
     duration: 0,
     isBuffering: false,
+    volume: 100,
+    isMuted: false,
+    playbackRate: 1,
+    quality: 'auto',
   });
 
   const playVideo = async (video: Video) => {
@@ -56,7 +72,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       showPlayer: true,
       currentTime: 0,
       duration: 0,
-      isBuffering: false,
+      isBuffering: true,
     }));
 
     // Fetch related videos for auto-play
@@ -76,8 +92,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           title: item.snippet.title,
           thumbnail: item.snippet.thumbnails.high.url,
           channelTitle: item.snippet.channelTitle,
+          publishedAt: item.snippet.publishedAt,
         }))
-        .filter((relatedVideo: Video) => relatedVideo.id !== video.id); // Don't include current video
+        .filter((relatedVideo: Video) => relatedVideo.id !== video.id);
 
       setPlayerState(prev => ({ ...prev, relatedVideos }));
     } catch (error) {
@@ -103,6 +120,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       currentTime: 0,
       duration: 0,
       isBuffering: false,
+      volume: 100,
+      isMuted: false,
+      playbackRate: 1,
+      quality: 'auto',
     });
   };
 
@@ -138,6 +159,26 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setPlayerState(prev => ({ ...prev, isBuffering: buffering }));
   };
 
+  const setVolume = (volume: number) => {
+    setPlayerState(prev => ({ ...prev, volume }));
+  };
+
+  const setMuted = (isMuted: boolean) => {
+    setPlayerState(prev => ({ ...prev, isMuted }));
+  };
+
+  const setPlaybackRate = (playbackRate: number) => {
+    setPlayerState(prev => ({ ...prev, playbackRate }));
+  };
+
+  const setQuality = (quality: string) => {
+    setPlayerState(prev => ({ ...prev, quality }));
+  };
+
+  const seekTo = (time: number) => {
+    setPlayerState(prev => ({ ...prev, currentTime: time }));
+  };
+
   return (
     <PlayerContext.Provider
       value={{
@@ -152,6 +193,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         updateCurrentTime,
         updateDuration,
         setBuffering,
+        setVolume,
+        setMuted,
+        setPlaybackRate,
+        setQuality,
+        seekTo,
       }}
     >
       {children}
