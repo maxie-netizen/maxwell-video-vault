@@ -8,9 +8,7 @@ import {
   VolumeX,
   Move,
   ChevronUp, 
-  ChevronDown,
-  SkipBack,
-  SkipForward
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -21,13 +19,13 @@ import { useVideoHistory } from '@/contexts/VideoHistoryContext';
 import { useLocation } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 
 interface Video {
   id: string;
   title: string;
   thumbnail: string;
   channelTitle?: string;
+  publishedAt?: string;
 }
 
 export default function MiniPlayer() {
@@ -38,21 +36,20 @@ export default function MiniPlayer() {
     minimizePlayer, 
     pausePlayer, 
     resumePlayer,
-    playVideo
+    playVideo,
+    setBuffering
   } = usePlayer();
   
-  const { currentVideo, isMinimized, showPlayer, isPlaying, currentTime, duration, isBuffering } = playerState;
+  const { currentVideo, isMinimized, showPlayer, isPlaying, currentTime, duration, isBuffering, relatedVideos } = playerState;
   const { profile } = useAuth() || {};
   const { updateVideoProgress, getVideoProgress } = useVideoHistory();
   const location = useLocation();
   
   const [hasStartedTracking, setHasStartedTracking] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [volume, setVolume] = useState(100);
+  const [localVolume, setLocalVolume] = useState(100);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(false);
-  const [relatedVideos, setRelatedVideos] = useState<Video[]>([]);
   
   const iframeRef = useRef<HTMLIFrameElement>(null);
   
@@ -88,7 +85,6 @@ export default function MiniPlayer() {
 
     const interval = setInterval(() => {
       if (currentTime > 0) {
-        setVideoProgress(currentTime);
         updateVideoProgress(
           currentVideo.id,
           currentVideo.title,
@@ -110,20 +106,16 @@ export default function MiniPlayer() {
       const savedProgress = getVideoProgress(currentVideo.id);
       
       const params = new URLSearchParams({
-        autoplay: '1',
+        autoplay: isPlaying ? '1' : '0',
         enablejsapi: '1',
         rel: '0',
         modestbranding: '1',
         start: Math.floor(savedProgress).toString(),
-        controls: '1',
+        controls: '0',
         showinfo: '0',
         iv_load_policy: '3',
-<<<<<<< HEAD
-        mute: isMuted ? '1' : '0'
-=======
         origin: window.location.origin,
-        mute: '0'
->>>>>>> 8eaf53f82631743e50128b6c64223925c7a01fe8
+        mute: isMuted ? '1' : '0'
       });
 
       // Clear src first to prevent multiple players
@@ -135,11 +127,7 @@ export default function MiniPlayer() {
       
       return () => clearTimeout(timer);
     }
-<<<<<<< HEAD
-  }, [currentVideo, isPlaying, getVideoProgress, isMuted]);
-=======
-  }, [currentVideo, isMinimized, getVideoProgress]);
->>>>>>> 8eaf53f82631743e50128b6c64223925c7a01fe8
+  }, [currentVideo, isMinimized, isPlaying, getVideoProgress, isMuted]);
 
   const handleSeek = (value: number[]) => {
     const newTime = (value[0] / 100) * duration;
@@ -147,7 +135,7 @@ export default function MiniPlayer() {
   };
 
   const handleVolumeChange = (value: number[]) => {
-    setVolume(value[0]);
+    setLocalVolume(value[0]);
     setIsMuted(value[0] === 0);
   };
 
@@ -157,6 +145,7 @@ export default function MiniPlayer() {
 
   const handleVideoClick = (video: Video) => {
     playVideo(video);
+    setIsExpanded(false);
   };
 
   const formatTime = (seconds: number) => {
@@ -165,36 +154,16 @@ export default function MiniPlayer() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return '1 day ago';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`;
-    return `${Math.ceil(diffDays / 365)} years ago`;
-  };
-
   // Only show mini player when on home page, player is active, minimized, and video exists
   if (!showPlayer || !currentVideo || !isMinimized || location.pathname !== '/' || !currentVideo.id) return null;
 
   return (
     <div 
       ref={elementRef}
-<<<<<<< HEAD
       className={`fixed z-50 bg-card border border-border rounded-lg shadow-lg transition-all duration-300 ${
         isDragging ? 'cursor-grabbing' : 'cursor-grab'
       } ${
         isExpanded ? 'w-96 h-[600px]' : 'w-80 h-auto'
-=======
-      className={`fixed z-40 bg-card border border-border rounded-lg shadow-lg transition-all duration-300 ${
-        isMobile ? 'w-80 max-w-[90vw]' : 'w-96 max-w-[90vw]'
-      } ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'} ${
-        isExpanded ? 'h-[600px]' : 'h-auto'
->>>>>>> 8eaf53f82631743e50128b6c64223925c7a01fe8
       }`}
       style={{ 
         left: position.x, 
@@ -269,7 +238,7 @@ export default function MiniPlayer() {
                 
                 <div className="w-16">
                   <Slider
-                    value={[isMuted ? 0 : volume]}
+                    value={[isMuted ? 0 : localVolume]}
                     onValueChange={handleVolumeChange}
                     max={100}
                     step={1}
