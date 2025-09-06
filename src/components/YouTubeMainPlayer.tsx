@@ -86,14 +86,6 @@ export default function YouTubeMainPlayer() {
       const iframe = iframeRef.current;
       const savedProgress = getVideoProgress(currentVideo.id);
       
-      console.log('=== YouTube Player Setup ===');
-      console.log('Current video:', currentVideo);
-      console.log('Video ID:', currentVideo.id);
-      console.log('Video title:', currentVideo.title);
-      console.log('Saved progress:', savedProgress);
-      console.log('Is playing:', isPlaying);
-      console.log('Iframe element:', iframe);
-      
       setIsVideoLoading(true);
       setBuffering(true);
       
@@ -106,22 +98,23 @@ export default function YouTubeMainPlayer() {
         controls: '1',
         showinfo: '0',
         iv_load_policy: '3',
-        origin: window.location.origin
+        origin: window.location.origin,
+        mute: '0' // Ensure audio is not muted
       });
 
       const videoUrl = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
-      console.log('Final video URL:', videoUrl);
       
-      // Clear previous src first
+      // Clear previous src to prevent duplicate audio
       iframe.src = '';
       
-      // Set new src
-      setTimeout(() => {
+      // Small delay to ensure clean loading
+      const timer = setTimeout(() => {
         iframe.src = videoUrl;
-        console.log('Iframe src set to:', iframe.src);
-      }, 100);
+      }, 50);
+      
+      return () => clearTimeout(timer);
     }
-  }, [currentVideo, isPlaying, getVideoProgress, setBuffering]);
+  }, [currentVideo, getVideoProgress, setBuffering]);
 
   // Load related videos
   const loadRelatedVideos = useCallback(async (pageToken?: string) => {
@@ -206,7 +199,7 @@ export default function YouTubeMainPlayer() {
   };
 
   // Only show main player when on home page, player is active, not minimized, and video exists
-  if (!showPlayer || !currentVideo || isMinimized || location.pathname !== '/') return null;
+  if (!showPlayer || !currentVideo || isMinimized || location.pathname !== '/' || !currentVideo.id) return null;
 
   return (
     <div className="fixed top-0 left-0 right-0 z-40 bg-background border-b border-border shadow-lg"
@@ -223,12 +216,10 @@ export default function YouTubeMainPlayer() {
                 allowFullScreen
                 title="YouTube Video Player"
                 onLoad={() => {
-                  console.log('YouTube player loaded successfully');
                   setBuffering(false);
                   setIsVideoLoading(false);
                 }}
                 onError={() => {
-                  console.error('YouTube player failed to load');
                   setBuffering(false);
                   setIsVideoLoading(false);
                 }}
@@ -249,11 +240,19 @@ export default function YouTubeMainPlayer() {
                 </div>
               )}
               
-              {/* Fallback message if video fails to load */}
-              {!isVideoLoading && !isBuffering && currentVideo && (
-                <div className="absolute bottom-2 right-2">
-                  <div className="bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    {currentVideo.id}
+              {/* Error handling */}
+              {!isVideoLoading && !isBuffering && !iframeRef.current?.src && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <p className="text-sm mb-2">Video failed to load</p>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => window.location.reload()}
+                      className="text-white border-white hover:bg-white hover:text-black"
+                    >
+                      Retry
+                    </Button>
                   </div>
                 </div>
               )}
@@ -270,28 +269,6 @@ export default function YouTubeMainPlayer() {
                     {currentVideo.channelTitle}
                   </div>
                   
-                  {/* Debug info */}
-                  <div className="text-xs text-muted-foreground mb-2 p-2 bg-muted/50 rounded">
-                    <div>Video ID: {currentVideo.id}</div>
-                    <div>Status: {isVideoLoading ? 'Loading...' : isBuffering ? 'Buffering...' : 'Ready'}</div>
-                    <div>Playing: {isPlaying ? 'Yes' : 'No'}</div>
-                    <div className="mt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          if (iframeRef.current) {
-                            const testUrl = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1';
-                            console.log('Testing with known video:', testUrl);
-                            iframeRef.current.src = testUrl;
-                          }
-                        }}
-                        className="text-xs"
-                      >
-                        Test with Rick Roll
-                      </Button>
-                    </div>
-                  </div>
                   
                   {/* Progress Bar */}
                   {duration > 0 && (

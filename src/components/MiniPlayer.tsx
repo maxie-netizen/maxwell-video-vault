@@ -83,7 +83,7 @@ export default function MiniPlayer() {
 
   // Set up iframe src with proper parameters
   useEffect(() => {
-    if (iframeRef.current && currentVideo) {
+    if (iframeRef.current && currentVideo && isMinimized) {
       const iframe = iframeRef.current;
       const savedProgress = getVideoProgress(currentVideo.id);
       
@@ -96,12 +96,20 @@ export default function MiniPlayer() {
         controls: '1',
         showinfo: '0',
         iv_load_policy: '3',
-        origin: window.location.origin
+        origin: window.location.origin,
+        mute: '0'
       });
 
-      iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
+      // Clear src first to prevent multiple players
+      iframe.src = '';
+      
+      const timer = setTimeout(() => {
+        iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
+      }, 50);
+      
+      return () => clearTimeout(timer);
     }
-  }, [currentVideo, isPlaying, getVideoProgress]);
+  }, [currentVideo, isMinimized, getVideoProgress]);
 
   const handlePictureInPicture = async () => {
     if (iframeRef.current) {
@@ -122,7 +130,7 @@ export default function MiniPlayer() {
   }, []);
 
   // Only show mini player when on home page, player is active, minimized, and video exists
-  if (!showPlayer || !currentVideo || !isMinimized || location.pathname !== '/' || isDragging) return null;
+  if (!showPlayer || !currentVideo || !isMinimized || location.pathname !== '/' || !currentVideo.id) return null;
 
   // Mini player - YouTube-like with expandable content
   return (
@@ -150,7 +158,8 @@ export default function MiniPlayer() {
           className="w-full h-full"
           allow="autoplay; encrypted-media; picture-in-picture"
           title="YouTube Mini Player"
-          onLoad={() => console.log('YouTube mini player loaded')}
+          onLoad={() => setBuffering(false)}
+          onError={() => setBuffering(false)}
         />
         
         {/* Progress Bar */}
