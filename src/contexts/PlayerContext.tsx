@@ -86,6 +86,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       
       const response = await searchYouTube(searchTerms);
       const relatedVideos = response.items
+<<<<<<< HEAD
         .slice(0, 10)
         .map((item: any) => ({
           id: item.id.videoId,
@@ -95,6 +96,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           publishedAt: item.snippet.publishedAt,
         }))
         .filter((relatedVideo: Video) => relatedVideo.id !== video.id);
+=======
+        ? response.items
+            .slice(0, 10)
+            .map((item: any) => ({
+              id: item.id.videoId,
+              title: item.snippet.title,
+              thumbnail: item.snippet.thumbnails.high.url,
+              channelTitle: item.snippet.channelTitle,
+            }))
+            .filter((relatedVideo: Video) => relatedVideo.id !== video.id)
+        : [];
+>>>>>>> 8eaf53f82631743e50128b6c64223925c7a01fe8
 
       setPlayerState(prev => ({ ...prev, relatedVideos }));
     } catch (error) {

@@ -131,14 +131,15 @@ const Profile = () => {
         if (updateError.message?.includes('recursion') || updateError.message?.includes('policy') || updateError.message?.includes('RLS')) {
           console.log('RLS error detected, trying RPC function...');
           
-          // Try using the RPC function as fallback
-          const { error: rpcError } = await supabase.rpc('update_user_avatar_simple', {
-            user_id: user.id,
-            avatar_data: base64Data
-          });
+          // Direct table update as fallback - remove RPC for now
+          console.log('Falling back to direct table update...');
+          const { error: directError } = await supabase
+            .from('profiles')
+            .update({ avatar_url: `data:image/jpeg;base64,${base64Data}` })
+            .eq('id', user.id);
           
-          if (rpcError) {
-            console.error('RPC error:', rpcError);
+          if (directError) {
+            console.error('Direct update error:', directError);
             throw new Error('Unable to update avatar. Please try again later.');
           }
           

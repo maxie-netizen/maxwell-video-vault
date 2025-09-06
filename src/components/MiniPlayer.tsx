@@ -105,25 +105,41 @@ export default function MiniPlayer() {
 
   // Set up iframe src with proper parameters
   useEffect(() => {
-    if (iframeRef.current && currentVideo) {
+    if (iframeRef.current && currentVideo && isMinimized) {
       const iframe = iframeRef.current;
       const savedProgress = getVideoProgress(currentVideo.id);
       
       const params = new URLSearchParams({
-        autoplay: isPlaying ? '1' : '0',
+        autoplay: '1',
         enablejsapi: '1',
         rel: '0',
         modestbranding: '1',
-        start: savedProgress.toString(),
+        start: Math.floor(savedProgress).toString(),
         controls: '1',
         showinfo: '0',
         iv_load_policy: '3',
+<<<<<<< HEAD
         mute: isMuted ? '1' : '0'
+=======
+        origin: window.location.origin,
+        mute: '0'
+>>>>>>> 8eaf53f82631743e50128b6c64223925c7a01fe8
       });
 
-      iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
+      // Clear src first to prevent multiple players
+      iframe.src = '';
+      
+      const timer = setTimeout(() => {
+        iframe.src = `https://www.youtube.com/embed/${currentVideo.id}?${params.toString()}`;
+      }, 50);
+      
+      return () => clearTimeout(timer);
     }
+<<<<<<< HEAD
   }, [currentVideo, isPlaying, getVideoProgress, isMuted]);
+=======
+  }, [currentVideo, isMinimized, getVideoProgress]);
+>>>>>>> 8eaf53f82631743e50128b6c64223925c7a01fe8
 
   const handleSeek = (value: number[]) => {
     const newTime = (value[0] / 100) * duration;
@@ -162,21 +178,30 @@ export default function MiniPlayer() {
     return `${Math.ceil(diffDays / 365)} years ago`;
   };
 
-  // Hide player when not on home page or when not minimized
-  if (!showPlayer || !currentVideo || location.pathname !== '/' || !isMinimized) return null;
+  // Only show mini player when on home page, player is active, minimized, and video exists
+  if (!showPlayer || !currentVideo || !isMinimized || location.pathname !== '/' || !currentVideo.id) return null;
 
   return (
     <div 
       ref={elementRef}
+<<<<<<< HEAD
       className={`fixed z-50 bg-card border border-border rounded-lg shadow-lg transition-all duration-300 ${
         isDragging ? 'cursor-grabbing' : 'cursor-grab'
       } ${
         isExpanded ? 'w-96 h-[600px]' : 'w-80 h-auto'
+=======
+      className={`fixed z-40 bg-card border border-border rounded-lg shadow-lg transition-all duration-300 ${
+        isMobile ? 'w-80 max-w-[90vw]' : 'w-96 max-w-[90vw]'
+      } ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'} ${
+        isExpanded ? 'h-[600px]' : 'h-auto'
+>>>>>>> 8eaf53f82631743e50128b6c64223925c7a01fe8
       }`}
       style={{ 
         left: position.x, 
         top: position.y, 
-        transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        userSelect: isDragging ? 'none' : 'auto',
+        pointerEvents: 'auto'
       }}
       onMouseDown={startDrag}
       onTouchStart={startDrag}
@@ -190,7 +215,8 @@ export default function MiniPlayer() {
           className="w-full h-full"
           allow="autoplay; encrypted-media; picture-in-picture"
           title="YouTube Mini Player"
-          onLoad={() => console.log('YouTube mini player loaded')}
+          onLoad={() => setBuffering(false)}
+          onError={() => setBuffering(false)}
         />
         
         {/* Progress Bar */}
